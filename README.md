@@ -1,1 +1,1 @@
-# blockctl-command-test
+# blockctl-command-registry
