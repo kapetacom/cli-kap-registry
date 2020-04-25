@@ -1,0 +1,31 @@
+{
+  "name": "@blockware/blockctl-command-registry",
+  "command": "registry",
+  "version": "0.0.1",
+  "description": "Push and pull from Blockware registry",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blockwarecom/blockctl-command-registry.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/blockwarecom/blockctl-command-registry/issues"
+  },
+  "homepage": "https://github.com/blockwarecom/blockctl-command-registry#readme",
+  "dependencies": {
+    "@blockware/blockctl-command": "0.0.2",
+    "@blockware/local-cluster-config": "^0.0.7",
+    "docker-file-parser": "^1.0.4",
+    "dockerode": "^3.2.0",
+    "glob": "^7.1.6",
+    "lodash": "^4.17.15",
+    "node-docker-api": "^1.1.22",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8",
+    "simple-git": "^1.132.0",
+    "tar-fs": "^2.0.1",
+    "yaml": "^1.9.2",
+    "zlib": "^1.0.5"
+  }
+}
