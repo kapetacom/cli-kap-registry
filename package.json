@@ -16,6 +16,7 @@
   "dependencies": {
     "@blockware/blockctl-command": "0.0.2",
     "@blockware/local-cluster-config": "^0.0.7",
+    "blessed": "^0.1.81",
     "docker-file-parser": "^1.0.4",
     "dockerode": "^3.2.0",
     "glob": "^7.1.6",

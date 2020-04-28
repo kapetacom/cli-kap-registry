@@ -1,11 +1,27 @@
 const Git = require('simple-git/promise');
 const _ = require('lodash');
-const CLI = require('../cli');
 
 /**
  * @implements {VCSHandler}
  */
 class GitHandler {
+
+    /**
+     * Determines if folder is a git repository
+     * @param {string} directory
+     * @returns {Promise<boolean>}
+     */
+    static async isRepo(directory) {
+        return await Git(directory).checkIsRepo();
+    }
+
+    /**
+     *
+     * @param {CLIHandler} cli
+     */
+    constructor(cli) {
+        this._cli = cli;
+    }
 
     getName() {
         return 'Git';
@@ -13,15 +29,6 @@ class GitHandler {
 
     getType() {
         return 'GIT';
-    }
-
-    /**
-     * Determines if folder is a git repository
-     * @param {string} directory
-     * @returns {Promise<boolean>}
-     */
-    async isRepo(directory) {
-        return await Git(directory).checkIsRepo();
     }
 
     async add(directory, filename) {
@@ -38,7 +45,7 @@ class GitHandler {
 
         const [remote, branch] = await this.getRemote(directory);
 
-        CLI.debug('Pushing changes to Git remote: %s/%s', remote, branch);
+        this._cli.debug('Pushing changes to Git remote: %s/%s', remote, branch);
 
         const git = Git(directory);
 

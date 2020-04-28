@@ -5,7 +5,7 @@ const YAML = require('yaml');
 const VCSUtils = require('../utils/VCSUtils');
 const DockerService = require('../utils/DockerService');
 const {promisifyChild} = require('../utils/promisifyStream');
-const cli = require('../utils/cli');
+const CLIHandler = require('../utils/CLIHandler');
 const BlockVersionCalculator = require('../utils/BlockVersionCalculator');
 const RegistryService = require('../RegistryService');
 const Config = require('../config');
@@ -15,19 +15,27 @@ class PushOperation {
 
     /**
      *
+     * @param {CLIHandler} cli
      * @param {string} file
      * @param {PushCommandOptions} cmdObj
      */
-    constructor(file, cmdObj) {
+    constructor(cli, file, cmdObj) {
 
-        this._versionCalculator = new BlockVersionCalculator();
+        /**
+         *
+         * @type {CLIHandler}
+         * @private
+         */
+        this._cli = cli;
+
+        this._versionCalculator = new BlockVersionCalculator(this._cli);
 
         this._registryService = new RegistryService(
             Config.data.registry.url,
             Config.data.registry.organisationId
         );
         
-        this._dockerService = new DockerService();
+        this._dockerService = new DockerService(this._cli);
 
         /**
          *
@@ -109,11 +117,11 @@ class PushOperation {
      */
     async _vcs() {
         if (this._vcsHandler === false) {
-            this._vcsHandler = await VCSUtils.getVCSHandler(this._directory);
+            this._vcsHandler = await VCSUtils.getVCSHandler(this._cli, this._directory);
             if (this._vcsHandler) {
-                cli.info(`Identified version control system: ${this._vcsHandler.getName()}`);
+                this._cli.showValue(`Identified version control system`, this._vcsHandler.getName());
             } else {
-                cli.warn(`No version control system found in folder.`);
+                this._cli.check(`Identified version control system`, false);
             }
         }
 
@@ -125,19 +133,19 @@ class PushOperation {
 
         const blockYml = Path.basename(this.file);
 
-        if (!await cli.check(blockYml + ' exists', FS.existsSync(this.file))) {
+        if (!await this._cli.check(blockYml + ' exists', FS.existsSync(this.file))) {
             throw new Error(`${this.file} was not found`);
         }
 
         const fileStat = FS.statSync(this.file);
 
-        if (!await cli.check(blockYml + ' is file', fileStat.isFile())) {
+        if (!await this._cli.check(blockYml + ' is file', fileStat.isFile())) {
             throw new Error(`${this.file} is not a file. A valid file must be specified`);
         }
 
         //Check for Dockerfile
         const dockerfile = Path.join(this._directory, 'Dockerfile');
-        if (!await cli.check('Dockerfile exists', FS.existsSync(dockerfile))) {
+        if (!await this._cli.check('Dockerfile exists', FS.existsSync(dockerfile))) {
             throw new Error(`${dockerfile} was not found - docker file is required`);
         }
 
@@ -168,13 +176,13 @@ class PushOperation {
         if (handler) {
             if (!this.cmdObj.ignoreWorkingDirectory) {
 
-                await cli.progress('Checking that working directory is clean', async () => {
+                await this._cli.progress('Checking that working directory is clean', async () => {
                     if (!(await handler.isWorkingDirectoryClean(this._directory))) {
                         throw new Error('Working directory is not clean. Make sure everything is committed or use --ignore-working-directory to ignore')
                     }
                 });
 
-                await cli.progress('Checking that working directory is up to date with remote', async () => {
+                await this._cli.progress('Checking that working directory is up to date with remote', async () => {
                     if (!(await handler.isWorkingDirectoryUpToDate(this._directory))) {
                         throw new Error('Working directory is not up to date with remote. Pull the latest changes or use --ignore-working-directory to continue.')
                     }
@@ -201,7 +209,7 @@ class PushOperation {
         //E.g.: New version: 1.2.3 - find 1.2.2 (latest with same minor version)
         //E.g.: New version: 1.3.0 - find 1.2.12 (latest with same major version)
 
-        await cli.progress('Checking semantic version',async () => {
+        await this._cli.progress('Checking semantic version',async () => {
             const latestDefinition = await this._registryService.getLatestVersionBefore(this.name, this.version);
 
             if (latestDefinition) {
@@ -231,7 +239,7 @@ class PushOperation {
 
         const checksum = await this.calculateChecksum();
 
-        return await cli.progress(`Checking existing version for ${this.version}`,async () => {
+        return await this._cli.progress(`Checking existing version for ${this.version}`,async () => {
             const existingDefinition = await this._registryService.getVersion(this.name, this.version);
             if (existingDefinition) {
 
@@ -241,14 +249,15 @@ class PushOperation {
 
                 //Calculate new version based on the diff set between old and new definitions
                 this.blockDefinition.metadata.version = await this._versionCalculator.calculateNextVersion(this.blockDefinition, existingDefinition.block);
-                cli.info(`Calculated next semantic version to be: ${this.blockDefinition.metadata.version}`);
+                this._cli.info(`Calculated next semantic version to be: ${this.blockDefinition.metadata.version}`);
                 FS.writeFileSync(this.file, YAML.stringify(this.blockDefinition));
                 return true;
             } else {
                 //We check if this is the first version - which is the only reason why the existing definition should be unavailable for auto-versioning
                 const latestVersion = await this._registryService.getLatestVersionBefore(this.name, this.version);
                 if (latestVersion) {
-                    throw new Error(`Existing version ${this.version} not found. Auto-versioning requires that you do not change the version manually.`);
+                    this._cli.warn(`Existing version ${this.version} not found. Auto-versioning requires that you do not change the version manually.`);
+                    this._cli.warn(`- Latest version found was ${latestVersion.block.metadata.version}.`);
                 }
             }
 
@@ -274,8 +283,10 @@ class PushOperation {
      * @returns {Promise<string>} calculates checksum of image content
      */
     async calculateChecksum() {
-        return cli.progress(`Calculating checksum`, async () => {
-            return await this._dockerService.calculateChecksum(this._directory);
+        return this._cli.progress(`Calculating checksum`, async () => {
+            const checksum = await this._dockerService.calculateChecksum(this._directory);
+            this._cli.info(`Checksum: ${checksum}`);
+            return checksum;
         });
     }
 
@@ -285,7 +296,7 @@ class PushOperation {
      */
     async buildDockerImage() {
         const dockerImageName = this._getLocalBuildName();
-        await cli.progress(`Building local docker image: ${dockerImageName}`, async () => {
+        await this._cli.progress(`Building local docker image: ${dockerImageName}`, async () => {
             return this._dockerService.build(this._directory, [
                 dockerImageName
             ]);
@@ -303,7 +314,7 @@ class PushOperation {
         });
 
         const result = await promisifyChild(child, (data) => {
-            cli.debug(data.line);
+            this._cli.debug(data.line);
         });
 
         if (result.exit !== 0) {
@@ -314,12 +325,12 @@ class PushOperation {
 
     async runTests() {
         if (this.cmdObj.skipTests) {
-            cli.info("Skipping tests...");
+            this._cli.info("Skipping tests...");
             return;
         }
 
         try {
-            await cli.progress('Running tests', async () => {
+            await this._cli.progress('Running tests', async () => {
                 return this._runScript('test.sh');
             });
         } catch (e) {
@@ -329,7 +340,7 @@ class PushOperation {
 
     async runBuild() {
         try {
-            await cli.progress('Building block', async () => {
+            await this._cli.progress('Building block', async () => {
                 return this._runScript('build.sh');
             });
         } catch (e) {
@@ -398,7 +409,7 @@ class PushOperation {
      * @returns {Promise<string[]>} returns all tags for image
      */
     async tagDockerImage(tags) {
-        cli.info('Tagging docker images', tags);
+        this._cli.info('Tagging docker images', tags);
 
         await this._dockerService.tag(this._getLocalBuildName(), tags);
     }
@@ -411,13 +422,13 @@ class PushOperation {
 
         const tagged = await handler.tag(this._directory, tag);
         if (tagged) {
-            cli.info("Added tag to %s: %s", handler.getName(), tag);
+            this._cli.info("Added tag to %s: %s", handler.getName(), tag);
         }
 
         if (tagged || yamlChanged) {
             await handler.push(this._directory, tagged);
         } else {
-            cli.info("No changes to %s - not pushing source", handler.getName());
+            this._cli.info("No changes to %s - not pushing source", handler.getName());
         }
     }
 
@@ -459,9 +470,9 @@ class PushOperation {
         const vcsHandler = await this._vcs();
 
         //Make sure file structure is as expected
-        await cli.progress('Verifying files exist', async () => this.checkExists());
+        await this._cli.progress('Verifying files exist', async () => this.checkExists());
 
-        await cli.progress('Verifying working directory', async () => this.checkWorkingDirectory());
+        await this._cli.progress('Verifying working directory', async () => this.checkWorkingDirectory());
 
         await this.runBuild();
 
@@ -470,7 +481,7 @@ class PushOperation {
         await this.checkVersion();
 
         //Reserve registry version - start 2-phase commit
-        const reservation = await cli.progress(
+        const reservation = await this._cli.progress(
             `Reserving version: ${this.blockDefinition.metadata.version}`,
             async () => this.reserveVersion());
 
@@ -480,18 +491,18 @@ class PushOperation {
 
             reservation.checksum = await this.calculateChecksum();
 
-            await cli.progress('Building docker image', async () => this.buildDockerImage());
+            await this._cli.progress('Building docker image', async () => this.buildDockerImage());
 
             let commitId;
             if (vcsHandler) {
                 //Commit block.yml to version control with changes if they exist
                 if (yamlChanged) {
-                    commitId = await cli.progress('Committing changes', async () => this.vcsCommitBlock());
+                    commitId = await this._cli.progress('Committing changes', async () => this.vcsCommitBlock());
                 } else {
                     commitId = await this.getCurrentVcsCommit();
                 }
 
-                cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > ${this.blockDefinition.metadata.version}`);
+                this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > ${this.blockDefinition.metadata.version}`);
 
                 //Record version control id of latest commit
                 reservation.vcs = {
@@ -503,9 +514,9 @@ class PushOperation {
 
             const dockerTags = this._getDockerTags(commitId);
 
-            await cli.progress('Tagging docker image', async () => this.tagDockerImage(dockerTags));
+            await this._cli.progress('Tagging docker image', async () => this.tagDockerImage(dockerTags));
 
-            await cli.progress('Pushing docker image', async () => this.pushDockerImage(dockerTags));
+            await this._cli.progress('Pushing docker image', async () => this.pushDockerImage(dockerTags));
 
             reservation.docker = {
                 image: {
@@ -516,12 +527,12 @@ class PushOperation {
             };
 
             if (vcsHandler) {
-                await cli.progress('Pushing source code', async () => this.vcsPush(commitId, yamlChanged));
+                await this._cli.progress('Pushing source code', async () => this.vcsPush(commitId, yamlChanged));
             }
 
-            await cli.progress('Committing version', async () => this.commitReservation(reservation));
+            await this._cli.progress('Committing version', async () => this.commitReservation(reservation));
         } catch (e) {
-            await cli.progress('Aborting version', async () => this.abortReservation(reservation));
+            await this._cli.progress('Aborting version', async () => this.abortReservation(reservation));
             throw e;
         }
     }
@@ -534,7 +545,12 @@ class PushOperation {
  * @returns {Promise<void>}
  */
 module.exports = async function(file, cmdObj) {
-    const operation = new PushOperation(file, cmdObj);
+
+    const cli = new CLIHandler(!cmdObj.nonInteractive);
+
+    cli.start(`Push ${file}`);
+
+    const operation = new PushOperation(cli, file, cmdObj);
 
     try {
         await operation.perform();
@@ -542,8 +558,10 @@ module.exports = async function(file, cmdObj) {
         cli.error('Push failed: %s', err.message);
 
         if (cmdObj.verbose && err.stack) {
-            cli.debug(err.stack);
+            cli.error(err.stack);
         }
+    } finally {
+        cli.end();
     }
 
 };

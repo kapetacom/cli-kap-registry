@@ -3,6 +3,7 @@
 interface PushCommandOptions {
     registry:string
     ignoreWorkingDirectory:boolean
+    nonInteractive:boolean
     skipTests:boolean
     autoVersioning:boolean
     checkVersion:boolean

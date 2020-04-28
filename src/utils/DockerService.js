@@ -7,9 +7,6 @@ const tar = require('tar-fs');
 const zlib = require('zlib');
 const crypto = require('crypto');
 
-
-const CLI = require('./cli');
-
 const {promisifyStream} = require('./promisifyStream');
 
 const createDockerDataHandler = function(lineHandler) {
@@ -21,11 +18,16 @@ const createDockerDataHandler = function(lineHandler) {
         });
 
     }
-}
+};
 
 class DockerService {
 
-    constructor() {
+    /**
+     *
+     * @param {CLIHandler} cli
+     */
+    constructor(cli) {
+        this._cli = cli;
         this._docker = new Docker();
     }
 
@@ -80,7 +82,7 @@ class DockerService {
         await promisifyStream(buildStream, createDockerDataHandler((data) => {
             if (data.stream &&
                 data.stream.trim()) {
-                CLI.debug(data.stream.trim());
+                this._cli.debug(data.stream.trim());
             }
         }));
     }
@@ -97,7 +99,7 @@ class DockerService {
             let [imageName,tag] = DockerService.splitName(fullTag);
 
             const image = this._docker.getImage(imageName);
-            await CLI.progress("Pushing docker image: " + fullTag, async() => {
+            await this._cli.progress("Pushing docker image: " + fullTag, async() => {
                 const stream = await image.push({tag});
                 await promisifyStream(stream, createDockerDataHandler((data) => {
                     if (!data.status) {
@@ -105,10 +107,10 @@ class DockerService {
                     }
 
                     if (!data.id) {
-                        CLI.debug(data.status.trim());
+                        this._cli.debug(data.status.trim());
                         return;
                     }
-                    CLI.debug(data.id, data.status.trim(), data.progressDetail && data.progressDetail.progress  ? data.progressDetail.progress : '');
+                    this._cli.debug(data.id, data.status.trim(), data.progressDetail && data.progressDetail.progress  ? data.progressDetail.progress : '');
                 }));
             });
         }
@@ -175,7 +177,7 @@ class DockerService {
 
         await dockerContainer.start();
         await promisifyStream(stream, (line) => {
-            CLI.debug(line);
+            this._cli.debug(line);
         });
 
         const inspect = await dockerContainer.inspect();

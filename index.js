@@ -9,8 +9,12 @@ const command = new BlockwareCommand(packageData.command, packageData.version);
 const program = command.program();
 
 program
+
+
+program
     .command('push <file>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
+    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('-i, --ignore-working-directory', 'Skip check for changes in working directory')
     .option('-s, --skip-tests', 'Skip running tests')
     .option('-a, --auto-versioning [enabled]', 'Automatically increment the semantic version', true)
