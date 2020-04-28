@@ -29,8 +29,9 @@ class GitHandler {
     }
 
     async commit(directory, message) {
-        const commitSummary = await Git(directory).commit(message);
-        return commitSummary.commit;
+        await Git(directory).commit(message);
+        //Return type from commit only includes the short-form commit hash. We want the full thing
+        return this.getLatestCommit(directory);
     }
 
     async push(directory, includeTags) {

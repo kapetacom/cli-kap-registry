@@ -64,10 +64,13 @@ class BlockVersionCalculator {
         switch (incrementType) {
             case BlockVersionCalculator.MAJOR:
                 versionInfo.major++;
+                versionInfo.minor = 0;
+                versionInfo.patch = 0;
                 return versionInfo.toString();
 
             case BlockVersionCalculator.MINOR:
                 versionInfo.minor++;
+                versionInfo.patch = 0;
                 return versionInfo.toString();
 
             case BlockVersionCalculator.PATCH:

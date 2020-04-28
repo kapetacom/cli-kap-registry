@@ -77,13 +77,11 @@ class PushOperation {
          */
         this.version = null;
 
-
         /**
          *
          * @type {Reservation|null}
          */
         this.reservation = null;
-
 
         /**
          *
@@ -288,11 +286,9 @@ class PushOperation {
     async buildDockerImage() {
         const dockerImageName = this._getLocalBuildName();
         await cli.progress(`Building local docker image: ${dockerImageName}`, async () => {
-            const checksum = await this._dockerService.build(this._directory, [
+            return this._dockerService.build(this._directory, [
                 dockerImageName
             ]);
-
-            console.log('checksum', checksum);
         });
 
         return dockerImageName
@@ -346,8 +342,6 @@ class PushOperation {
      * @returns {Promise<string>} returns VCS commit id
      */
     async vcsCommitBlock() {
-        //TODO: Either unstage everything or throw if there are staged changes
-
         const handler = await this._vcs();
 
         await handler.add(this._directory, this.file);
@@ -369,7 +363,10 @@ class PushOperation {
         const dockerImage = this._getDockerImageName();
 
         const tags = this._getVersionTags(dockerImage + ':');
-        tags.push(`${dockerImage}:${commitId}`);
+        if (commitId) {
+            tags.push(`${dockerImage}:${commitId}`);
+        }
+
         return tags;
     }
 
@@ -388,6 +385,13 @@ class PushOperation {
             `${prefix}${versionInfo.major}`
         ];
     }
+
+    _getPrimaryDockerImage() {
+        const dockerImage = this._getDockerImageName();
+        const version = this.blockDefinition.metadata.version;
+
+        return `${dockerImage}:${version}`;
+    }
     /**
      *
      * @param {string[]} tags
@@ -405,8 +409,10 @@ class PushOperation {
 
         const tag = 'v' + this.blockDefinition.metadata.version;
 
-        cli.info("Adding tag to %s: %s", handler.getName(), tag);
         const tagged = await handler.tag(this._directory, tag);
+        if (tagged) {
+            cli.info("Added tag to %s: %s", handler.getName(), tag);
+        }
 
         if (tagged || yamlChanged) {
             await handler.push(this._directory, tagged);
@@ -450,15 +456,14 @@ class PushOperation {
      */
     async perform() {
 
+        const vcsHandler = await this._vcs();
+
         //Make sure file structure is as expected
         await cli.progress('Verifying files exist', async () => this.checkExists());
 
         await cli.progress('Verifying working directory', async () => this.checkWorkingDirectory());
 
         await this.runBuild();
-
-        await this.runTests();
-
 
         const yamlChanged = await this.incrementVersion();
 
@@ -470,27 +475,31 @@ class PushOperation {
             async () => this.reserveVersion());
 
         try {
+
+            await this.runTests();
+
             reservation.checksum = await this.calculateChecksum();
 
             await cli.progress('Building docker image', async () => this.buildDockerImage());
 
-            //Commit block.yml to version control with changes if they exist
             let commitId;
-            if (yamlChanged) {
-                commitId = await cli.progress('Committing changes', async () => this.vcsCommitBlock());
-            } else {
-                commitId = await this.getCurrentVcsCommit();
+            if (vcsHandler) {
+                //Commit block.yml to version control with changes if they exist
+                if (yamlChanged) {
+                    commitId = await cli.progress('Committing changes', async () => this.vcsCommitBlock());
+                } else {
+                    commitId = await this.getCurrentVcsCommit();
+                }
+
+                cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > ${this.blockDefinition.metadata.version}`);
+
+                //Record version control id of latest commit
+                reservation.vcs = {
+                    type: vcsHandler.getType(),
+                    checkout: await vcsHandler.getCheckoutInfo(this._directory),
+                    commitId
+                };
             }
-
-            cli.info(`Assigning VCS commit id to version: ${commitId} > ${this.blockDefinition.metadata.version}`);
-
-            //Record version control id of latest commit
-            const handler = await this._vcs();
-            reservation.vcs = {
-                type: handler.getType(),
-                checkout: await handler.getCheckoutInfo(this._directory),
-                commitId
-            };
 
             const dockerTags = this._getDockerTags(commitId);
 
@@ -499,10 +508,16 @@ class PushOperation {
             await cli.progress('Pushing docker image', async () => this.pushDockerImage(dockerTags));
 
             reservation.docker = {
-                images: dockerTags
+                image: {
+                    name: this._getDockerImageName(),
+                    primary: this._getPrimaryDockerImage(),
+                    tags: dockerTags
+                }
             };
 
-            await cli.progress('Pushing source code', async () => this.vcsPush(commitId, yamlChanged));
+            if (vcsHandler) {
+                await cli.progress('Pushing source code', async () => this.vcsPush(commitId, yamlChanged));
+            }
 
             await cli.progress('Committing version', async () => this.commitReservation(reservation));
         } catch (e) {
