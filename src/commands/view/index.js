@@ -1,10 +1,27 @@
+const YAML = require('yaml');
+const Config = require('../../config');
+const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
+const RegistryService = require('../../services/RegistryService');
 
 /**
  *
- * @param {string} file
- * @param {object} cmdObj
+ * @param {string} uri
+ * @param {CommandOptions} cmdObj
  * @returns {Promise<void>}
  */
-module.exports = async function view(file, cmdObj) {
+module.exports = async function view(uri, cmdObj) {
+    const blockInfo = parseBlockwareUri(uri);
 
+    const registryService = new RegistryService(
+        cmdObj.registry || Config.data.registry.url,
+        blockInfo.organizationId
+    );
+
+    const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
+
+    if (!registration) {
+        throw new Error('Registration not found: ' + uri);
+    }
+
+    console.log(YAML.stringify(registration));
 };

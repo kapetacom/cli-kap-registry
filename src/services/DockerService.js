@@ -37,10 +37,15 @@ class DockerService {
             tag = 'latest';
         }
 
-        await this._docker.image.create({}, {
+        await this._docker.createImage({}, {
             fromImage: imageName,
             tag: tag
-        }).then(stream => promisifyStream(stream));
+        }).then(stream => promisifyStream(stream, createDockerDataHandler((data) => {
+            if (data.status &&
+                data.status.trim()) {
+                this._cli.debug(data.status.trim());
+            }
+        })));
     }
 
     _pack(directory) {

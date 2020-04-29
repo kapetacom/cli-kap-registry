@@ -8,7 +8,17 @@ const Config = require('./src/config');
 const command = new BlockwareCommand(packageData.command, packageData.version);
 const program = command.program();
 
-program
+
+function catchError(callback) {
+
+    return async function() {
+        try {
+            return await callback.apply(this, arguments);
+        } catch(err) {
+            console.error('[ERROR] ' + err.message);
+        }
+    }
+}
 
 
 program
@@ -23,39 +33,39 @@ program
     .option('--dry-run', 'Only write what would happen - do not actually do anything')
     .option('-v, --verbose', 'Show additional output for debugging')
     .description('push block to registry')
-    .action(require('./src/commands/push'));
+    .action(catchError(require('./src/commands/push')));
 
 program
     .command('clone <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Clone source code of block from registry - e.g. clone "blockware://my-company/my-block"')
-    .action(require('./src/commands/clone'));
+    .action(catchError(require('./src/commands/clone')));
 
 program
     .command('fork <blockuri> <newblockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Fork and clone source code of block from registry - e.g. fork "blockware://other-company/their-block" "blockware://my-company/their-block"')
-    .action(require('./src/commands/fork'));
+    .action(catchError(require('./src/commands/fork')));
 
 program
     .command('pull-image <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Pull docker image for block from registry - e.g. pull "blockware://my-company/my-block"')
-    .action(require('./src/commands/pull-image'));
+    .action(catchError(require('./src/commands/pull-image')));
 
 program
     .command('view <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('View block definition - e.g. view "blockware://my-company/my-block"')
-    .action(require('./src/commands/view'));
+    .action(catchError(require('./src/commands/view')));
 
 program
     .command('set-url <registry>')
     .description('Updates default registry url')
-    .action((registry) => {
+    .action(catchError((registry) => {
         Config.data.registry.url = registry;
         Config.save();
         console.log('Default registry url set to %s', registry);
-    });
+    }));
 
 command.start();

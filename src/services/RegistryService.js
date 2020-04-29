@@ -64,6 +64,15 @@ class RegistryService {
         return this._request('GET', `/blocks/${name}/${version}/previous`);
     }
 
+    /**
+     *
+     * @param {string} name
+     * @returns {Promise<BlockRegistration>}
+     */
+    async getLatestVersion(name) {
+        return this.getVersion(name, 'latest');
+    }
+
     async _request(method, path, body, options) {
         try {
             const requestOptions = {

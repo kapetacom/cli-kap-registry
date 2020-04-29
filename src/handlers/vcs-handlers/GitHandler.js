@@ -16,6 +16,15 @@ class GitHandler {
     }
 
     /**
+     * Get type of handler
+     *
+     * @returns {string}
+     */
+    static getType() {
+        return 'GIT';
+    }
+
+    /**
      *
      * @param {CLIHandler} cli
      */
@@ -216,6 +225,27 @@ class GitHandler {
 
         throw new Error('Failed to identify remote to use and local branch is not tracking any.');
 
+    }
+
+    /**
+     *
+     * @param {GitCheckoutInfo} checkoutInfo
+     * @param {string} commitId
+     * @param {string} targetFolder
+     * @returns {Promise<void>}
+     */
+    async clone(checkoutInfo, commitId, targetFolder) {
+        const git = Git();
+
+        await this._cli.progress(`Cloning GIT repository ${checkoutInfo.url} to ${targetFolder}`, async () => {
+            await git.clone(checkoutInfo.url, targetFolder);
+        });
+
+        const gitRepo = Git(targetFolder);
+
+        await this._cli.progress(`Checking out commit ${commitId}`, async () => {
+            await gitRepo.checkout(commitId);
+        });
     }
 }
 

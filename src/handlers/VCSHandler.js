@@ -20,3 +20,20 @@ exports.getVCSHandler = async (cli, directory) => {
 
     return null;
 };
+
+/**
+ * Get version control handler for type
+ * @param {CLIHandler} cli
+ * @param {string} type
+ * @returns {VCSHandler|null}
+ */
+exports.getVCSHandlerByType = async (cli, type) => {
+    for(let i = 0 ; i < VCS_HANDLERS.length; i++) {
+        const handler = VCS_HANDLERS[i];
+        if (await handler.getType().toLowerCase() === type.toLowerCase()) {
+            return new handler(cli);
+        }
+    }
+
+    return null;
+};

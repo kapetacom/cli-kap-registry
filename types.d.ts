@@ -1,4 +1,13 @@
 
+interface CommandOptions {
+    registry:string
+}
+
+interface CloneCommandOptions {
+    registry:string
+    target:string
+}
+
 
 interface PushCommandOptions {
     registry:string
@@ -17,12 +26,20 @@ interface VersionReservation {
     options: {[key:string]:any}
 }
 
+interface GitCheckoutInfo {
+    url: string
+    remote: string
+    branch: string
+    path: string
+}
+
 interface VCSHandler {
     getName():string
     getType():string
     isRepo(dirname:string):Promise<boolean>
     add(directory:string, filename:string):Promise<void>
     commit(directory:string, message:string):Promise<string>
+    clone(checkoutInfo:any, commitId:string, targetFolder:string):Promise<void>
     push(directory:string, includeTags:boolean):Promise<void>
     tag(directory:string, tag:string):Promise<boolean>
     getLatestCommit(directory:string):Promise<string>
@@ -40,6 +57,9 @@ interface Reservation {
 
 interface BlockRegistration {
     block: BlockDefinition
+    vcs?:any
+    docker?:string
+    checksum?: string
     properties: {[key:string]:any}
 }
 
