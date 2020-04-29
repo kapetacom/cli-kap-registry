@@ -134,6 +134,22 @@ class GitHandler {
         const git = Git(directory);
         const remotes = await git.getRemotes(true);
 
+        //git rev-parse --show-toplevel
+        const topLevelDir = await git.revparse('--show-toplevel');
+        console.log('topLevelDir', topLevelDir);
+        let relativePath;
+        if (directory.indexOf(topLevelDir) === 0) {
+            relativePath = directory.substr(topLevelDir.length + 1);
+        }
+
+        if (!relativePath || relativePath === '/') {
+            relativePath = '.';
+        } else if (!relativePath.startsWith('./')) {
+            relativePath = './' + relativePath
+        } else if (!relativePath.startsWith('.')) {
+            relativePath = '.' + relativePath
+        }
+
         const remoteInfo = _.find(remotes, {name: remote});
 
         if (remoteInfo.refs &&
@@ -141,7 +157,8 @@ class GitHandler {
             return {
                 url: remoteInfo.refs.fetch,
                 remote: remote,
-                branch: branch
+                branch: branch,
+                path: relativePath
             };
         }
 

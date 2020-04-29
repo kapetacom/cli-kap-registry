@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-class BlockVersionCalculator {
+class VersionCalculator {
 
 
     /**
@@ -59,21 +59,21 @@ class BlockVersionCalculator {
      * @param {VersionDiffType} incrementType
      */
     static incrementVersionBy(version, incrementType) {
-        const versionInfo = BlockVersionCalculator.parseVersion(version);
+        const versionInfo = VersionCalculator.parseVersion(version);
 
         switch (incrementType) {
-            case BlockVersionCalculator.MAJOR:
+            case VersionCalculator.MAJOR:
                 versionInfo.major++;
                 versionInfo.minor = 0;
                 versionInfo.patch = 0;
                 return versionInfo.toString();
 
-            case BlockVersionCalculator.MINOR:
+            case VersionCalculator.MINOR:
                 versionInfo.minor++;
                 versionInfo.patch = 0;
                 return versionInfo.toString();
 
-            case BlockVersionCalculator.PATCH:
+            case VersionCalculator.PATCH:
             default:
                 versionInfo.patch++;
                 return versionInfo.toString();
@@ -87,21 +87,21 @@ class BlockVersionCalculator {
      * @returns {VersionDiffType}
      */
     static calculateIncrementType(versionA, versionB) {
-        const fromVersionInfo = BlockVersionCalculator.parseVersion(versionA);
-        const toVersionInfo = BlockVersionCalculator.parseVersion(versionB);
+        const fromVersionInfo = VersionCalculator.parseVersion(versionA);
+        const toVersionInfo = VersionCalculator.parseVersion(versionB);
         if (fromVersionInfo.major !== toVersionInfo.major) {
-            return BlockVersionCalculator.MAJOR;
+            return VersionCalculator.MAJOR;
         }
 
         if (fromVersionInfo.minor !== toVersionInfo.minor) {
-            return BlockVersionCalculator.MINOR;
+            return VersionCalculator.MINOR;
         }
 
         if (fromVersionInfo.patch !== toVersionInfo.patch) {
-            return BlockVersionCalculator.PATCH;
+            return VersionCalculator.PATCH;
         }
 
-        return BlockVersionCalculator.NONE;
+        return VersionCalculator.NONE;
     }
 
     /**
@@ -112,8 +112,8 @@ class BlockVersionCalculator {
      * @returns {boolean}
      */
     static isIncrementGreaterThan(typeA, typeB) {
-        const a = BlockVersionCalculator.typeToNumber(typeA);
-        const b = BlockVersionCalculator.typeToNumber(typeB);
+        const a = VersionCalculator.typeToNumber(typeA);
+        const b = VersionCalculator.typeToNumber(typeB);
 
         return a > b;
     }
@@ -127,7 +127,7 @@ class BlockVersionCalculator {
     async calculateNextVersion(newDefinition, existingDefinition) {
         const versionDiffRequired = await this.compareBlockDefinitions(newDefinition, existingDefinition);
 
-        return BlockVersionCalculator.incrementVersionBy(newDefinition.metadata.version, versionDiffRequired);
+        return VersionCalculator.incrementVersionBy(newDefinition.metadata.version, versionDiffRequired);
     }
 
     /**
@@ -139,16 +139,16 @@ class BlockVersionCalculator {
      */
     async compareBlockDefinitions(newDefinition, existingDefinition) {
         if (newDefinition.kind.toLowerCase() !== existingDefinition.kind.toLowerCase()) {
-            return BlockVersionCalculator.MAJOR;
+            return VersionCalculator.MAJOR;
         }
 
         if (_.isEmpty(newDefinition.spec) && _.isEmpty(existingDefinition.spec)) {
-            return BlockVersionCalculator.NONE;
+            return VersionCalculator.NONE;
         }
 
         if (_.isEmpty(newDefinition.spec) && !_.isEmpty(existingDefinition.spec)) {
             //Spec was removed
-            return BlockVersionCalculator.MAJOR;
+            return VersionCalculator.MAJOR;
         }
 
         if (!newDefinition.spec) {
@@ -156,41 +156,41 @@ class BlockVersionCalculator {
         }
 
         const entityMatchType = this.compareEntities(newDefinition.spec.entities, existingDefinition.spec.entities);
-        if (entityMatchType === BlockVersionCalculator.MAJOR) {
+        if (entityMatchType === VersionCalculator.MAJOR) {
             return entityMatchType;
         }
 
-        const newConsumers = BlockVersionCalculator._asResourceMap(newDefinition.spec.consumers);
-        const oldConsumers = BlockVersionCalculator._asResourceMap(existingDefinition.spec.consumers);
+        const newConsumers = VersionCalculator._asResourceMap(newDefinition.spec.consumers);
+        const oldConsumers = VersionCalculator._asResourceMap(existingDefinition.spec.consumers);
 
         const consumerMatchType = this.compareResourceMaps(newConsumers, oldConsumers);
 
-        if (consumerMatchType === BlockVersionCalculator.MAJOR) {
+        if (consumerMatchType === VersionCalculator.MAJOR) {
             return consumerMatchType;
         }
 
-        const newProviders = BlockVersionCalculator._asResourceMap(newDefinition.spec.providers);
-        const oldProviders = BlockVersionCalculator._asResourceMap(existingDefinition.spec.providers);
+        const newProviders = VersionCalculator._asResourceMap(newDefinition.spec.providers);
+        const oldProviders = VersionCalculator._asResourceMap(existingDefinition.spec.providers);
 
         const providerMatchType = this.compareResourceMaps(newProviders, oldProviders);
 
-        if (providerMatchType === BlockVersionCalculator.MAJOR) {
-            return BlockVersionCalculator.MAJOR;
+        if (providerMatchType === VersionCalculator.MAJOR) {
+            return VersionCalculator.MAJOR;
         }
 
-        if (entityMatchType === BlockVersionCalculator.MINOR ||
-            consumerMatchType === BlockVersionCalculator.MINOR ||
-            providerMatchType === BlockVersionCalculator.MINOR) {
-            return BlockVersionCalculator.MINOR;
+        if (entityMatchType === VersionCalculator.MINOR ||
+            consumerMatchType === VersionCalculator.MINOR ||
+            providerMatchType === VersionCalculator.MINOR) {
+            return VersionCalculator.MINOR;
         }
 
-        if (entityMatchType === BlockVersionCalculator.PATCH ||
-            consumerMatchType === BlockVersionCalculator.PATCH ||
-            providerMatchType === BlockVersionCalculator.PATCH) {
-            return BlockVersionCalculator.PATCH;
+        if (entityMatchType === VersionCalculator.PATCH ||
+            consumerMatchType === VersionCalculator.PATCH ||
+            providerMatchType === VersionCalculator.PATCH) {
+            return VersionCalculator.PATCH;
         }
 
-        return BlockVersionCalculator.NONE;
+        return VersionCalculator.NONE;
     }
 
     /**
@@ -201,7 +201,7 @@ class BlockVersionCalculator {
      * @returns {VersionDiffType}
      */
     compareResourceMaps(newResources, oldResources) {
-        let out = BlockVersionCalculator.NONE;
+        let out = VersionCalculator.NONE;
 
         if (_.isEqual(newResources, oldResources)) {
             return out;
@@ -214,7 +214,7 @@ class BlockVersionCalculator {
 
             if (!newResources[oldKey]) {
                 //Resource has been removed - major change
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
 
             const oldResource = oldResources[oldKey];
@@ -222,12 +222,12 @@ class BlockVersionCalculator {
 
             const resourceDiffType = this.compareResources(newResource, oldResource);
 
-            if (resourceDiffType === BlockVersionCalculator.MAJOR) {
+            if (resourceDiffType === VersionCalculator.MAJOR) {
                 return resourceDiffType;
             }
 
-            if (resourceDiffType === BlockVersionCalculator.MINOR) {
-                out = BlockVersionCalculator.MINOR;
+            if (resourceDiffType === VersionCalculator.MINOR) {
+                out = VersionCalculator.MINOR;
             }
         }
 
@@ -238,7 +238,7 @@ class BlockVersionCalculator {
 
             if (!oldResources[newKey]) {
                 //Resource has been added - minor change
-                out = BlockVersionCalculator.MINOR;
+                out = VersionCalculator.MINOR;
             }
 
         }
@@ -255,27 +255,27 @@ class BlockVersionCalculator {
      */
     compareResources(newResource, oldResource) {
         if (_.isEqual(newResource, oldResource)) {
-            return BlockVersionCalculator.NONE;
+            return VersionCalculator.NONE;
         }
 
         if (oldResource.metadata.name !== newResource.metadata.name) {
             //Changed the name of existing resource - major change
-            return BlockVersionCalculator.MAJOR;
+            return VersionCalculator.MAJOR;
         }
 
         if (!oldResource.spec &&
             !newResource.spec) {
-            return BlockVersionCalculator.NONE;
+            return VersionCalculator.NONE;
         }
 
         if (!_.isEmpty(oldResource.spec) && _.isEmpty(newResource.spec)) {
             //New specs are empty - major change
-            return BlockVersionCalculator.MAJOR;
+            return VersionCalculator.MAJOR;
         }
 
         if (_.isEmpty(oldResource.spec) && !_.isEmpty(newResource.spec)) {
             //Old specs are empty - major change
-            return  BlockVersionCalculator.MAJOR;
+            return  VersionCalculator.MAJOR;
         }
 
         const kind = newResource.kind.toLowerCase();
@@ -290,10 +290,10 @@ class BlockVersionCalculator {
 
         if (!_.isEqual(oldResource.spec, newResource.spec)) {
             //Old specs are empty - major change
-            return  BlockVersionCalculator.MAJOR;
+            return  VersionCalculator.MAJOR;
         }
 
-        return BlockVersionCalculator.NONE;
+        return VersionCalculator.NONE;
     }
 
     /**
@@ -311,7 +311,7 @@ class BlockVersionCalculator {
             const oldMethodId = oldMethodIds[i];
             if (!newMethods[oldMethodId]) {
                 //Old method was removed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
 
             /**
@@ -330,22 +330,22 @@ class BlockVersionCalculator {
 
             if (!_.isEqual(oldMethod.arguments, newMethod.arguments)) {
                 //Method arguments changed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
 
             if (!_.isEqual(oldMethod.responseType, newMethod.responseType)) {
                 //Response type changed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
 
             if (!_.isEqual(oldMethod.method, newMethod.method)) {
                 //Method changed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
 
             if (!_.isEqual(oldMethod.path, newMethod.path)) {
                 //Path changed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
         }
 
@@ -356,11 +356,11 @@ class BlockVersionCalculator {
 
             if (!oldMethods[newMethodId]) {
                 //Method was added
-                return BlockVersionCalculator.MINOR;
+                return VersionCalculator.MINOR;
             }
         }
 
-        return BlockVersionCalculator.NONE;
+        return VersionCalculator.NONE;
     }
 
     /**
@@ -392,7 +392,7 @@ class BlockVersionCalculator {
             const oldEntityName = oldEntityNames[i];
             if (!newEntities[oldEntityName]) {
                 //Old entity was removed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
             
             const oldEntity = oldEntities[oldEntityName];
@@ -400,7 +400,7 @@ class BlockVersionCalculator {
             
             if (!_.isEqual(oldEntity, newEntity)) {
                 //Existing entity changed
-                return BlockVersionCalculator.MAJOR;
+                return VersionCalculator.MAJOR;
             }
         }
 
@@ -411,11 +411,11 @@ class BlockVersionCalculator {
 
             if (!oldEntities[newEntityName]) {
                 //Entity was added
-                return BlockVersionCalculator.MINOR;
+                return VersionCalculator.MINOR;
             }
         }
 
-        return BlockVersionCalculator.NONE;
+        return VersionCalculator.NONE;
     }
 
     /**
@@ -445,25 +445,25 @@ class BlockVersionCalculator {
  *
  * @type {VersionDiffType}
  */
-BlockVersionCalculator.MAJOR = 'MAJOR';
+VersionCalculator.MAJOR = 'MAJOR';
 
 /**
  *
  * @type {VersionDiffType}
  */
-BlockVersionCalculator.MINOR = 'MINOR';
+VersionCalculator.MINOR = 'MINOR';
 
 /**
  *
  * @type {VersionDiffType}
  */
-BlockVersionCalculator.PATCH = 'PATCH';
+VersionCalculator.PATCH = 'PATCH';
 
 /**
  *
  * @type {VersionDiffType}
  */
-BlockVersionCalculator.NONE = 'NONE';
+VersionCalculator.NONE = 'NONE';
 
 
-module.exports = BlockVersionCalculator;
+module.exports = VersionCalculator;

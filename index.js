@@ -23,39 +23,31 @@ program
     .option('--dry-run', 'Only write what would happen - do not actually do anything')
     .option('-v, --verbose', 'Show additional output for debugging')
     .description('push block to registry')
-    .action(require('./src/push/pushHandler'));
+    .action(require('./src/commands/push'));
 
 program
     .command('clone <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Clone source code of block from registry - e.g. clone "blockware://my-company/my-block"')
-    .action((blockUri) => {
-
-    });
+    .action(require('./src/commands/clone'));
 
 program
     .command('fork <blockuri> <newblockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Fork and clone source code of block from registry - e.g. fork "blockware://other-company/their-block" "blockware://my-company/their-block"')
-    .action((blockUri, newBlockUri) => {
-
-    });
+    .action(require('./src/commands/fork'));
 
 program
     .command('pull-image <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Pull docker image for block from registry - e.g. pull "blockware://my-company/my-block"')
-    .action((blockUri) => {
-
-    });
+    .action(require('./src/commands/pull-image'));
 
 program
     .command('view <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('View block definition - e.g. view "blockware://my-company/my-block"')
-    .action((blockUri) => {
-
-    });
+    .action(require('./src/commands/view'));
 
 program
     .command('set-url <registry>')

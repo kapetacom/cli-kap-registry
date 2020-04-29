@@ -2,13 +2,13 @@ const Path = require('path');
 const FS = require('fs');
 const YAML = require('yaml');
 
-const VCSUtils = require('../utils/VCSUtils');
-const DockerService = require('../utils/DockerService');
-const {promisifyChild} = require('../utils/promisifyStream');
-const CLIHandler = require('../utils/CLIHandler');
-const BlockVersionCalculator = require('../utils/BlockVersionCalculator');
-const RegistryService = require('../RegistryService');
-const Config = require('../config');
+const VCSHandler = require('../../handlers/VCSHandler');
+const DockerService = require('../../services/DockerService');
+const {promisifyChild} = require('../../utils/PromiseUtils');
+const CLIHandler = require('../../handlers/CLIHandler');
+const VersionCalculator = require('../../utils/VersionCalculator');
+const RegistryService = require('../../services/RegistryService');
+const Config = require('../../config');
 const {spawn} = require('child_process');
 
 class PushOperation {
@@ -28,7 +28,7 @@ class PushOperation {
          */
         this._cli = cli;
 
-        this._versionCalculator = new BlockVersionCalculator(this._cli);
+        this._versionCalculator = new VersionCalculator(this._cli);
 
         this._registryService = new RegistryService(
             Config.data.registry.url,
@@ -117,7 +117,7 @@ class PushOperation {
      */
     async _vcs() {
         if (this._vcsHandler === false) {
-            this._vcsHandler = await VCSUtils.getVCSHandler(this._cli, this._directory);
+            this._vcsHandler = await VCSHandler.getVCSHandler(this._cli, this._directory);
             if (this._vcsHandler) {
                 this._cli.showValue(`Identified version control system`, this._vcsHandler.getName());
             } else {
@@ -214,13 +214,13 @@ class PushOperation {
 
             if (latestDefinition) {
                 const latestVersion = latestDefinition.block.metadata.version;
-                const actualIncrement = BlockVersionCalculator.calculateIncrementType(latestVersion, this.version);
+                const actualIncrement = VersionCalculator.calculateIncrementType(latestVersion, this.version);
 
                 const nextAutoVersion = await this._versionCalculator.calculateNextVersion(this.blockDefinition, latestDefinition.block);
 
-                const requiredIncrement = BlockVersionCalculator.calculateIncrementType(latestVersion, nextAutoVersion);
+                const requiredIncrement = VersionCalculator.calculateIncrementType(latestVersion, nextAutoVersion);
 
-                if (BlockVersionCalculator.isIncrementGreaterThan(requiredIncrement, actualIncrement)) {
+                if (VersionCalculator.isIncrementGreaterThan(requiredIncrement, actualIncrement)) {
                     //Semantic version rules were not followed.
                     throw new Error(`Version increment not allowed: ${this.version}. ${actualIncrement} detected and required increment was ${requiredIncrement} from ${latestVersion}`);
                 }
@@ -388,7 +388,7 @@ class PushOperation {
 
         const version = this.blockDefinition.metadata.version;
 
-        const versionInfo =  BlockVersionCalculator.parseVersion(version);
+        const versionInfo =  VersionCalculator.parseVersion(version);
 
         return [
             `${prefix}${versionInfo.major}.${versionInfo.minor}.${versionInfo.patch}`,
@@ -544,7 +544,7 @@ class PushOperation {
  * @param {PushCommandOptions} cmdObj
  * @returns {Promise<void>}
  */
-module.exports = async function(file, cmdObj) {
+module.exports = async function push(file, cmdObj) {
 
     const cli = new CLIHandler(!cmdObj.nonInteractive);
 

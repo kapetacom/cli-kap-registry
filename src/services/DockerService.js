@@ -7,7 +7,7 @@ const tar = require('tar-fs');
 const zlib = require('zlib');
 const crypto = require('crypto');
 
-const {promisifyStream} = require('./promisifyStream');
+const {promisifyStream} = require('../utils/PromiseUtils');
 
 const createDockerDataHandler = function(lineHandler) {
     return  (data) => {
