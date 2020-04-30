@@ -1,3 +1,5 @@
+
+
 const request = require('request-promise-native');
 const HEADER_ORG = 'x-blockware-org';
 const HEADER_OPTS = 'x-blockware-options';
@@ -51,7 +53,7 @@ class RegistryService {
      * @returns {Promise<BlockRegistration>}
      */
     async getVersion(name, version) {
-        return this._request('GET', `/blocks/${name}/${version}`);
+        return this._request('GET', `/blocks/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
     }
 
     /**
@@ -61,7 +63,7 @@ class RegistryService {
      * @returns {Promise<BlockRegistration>}
      */
     async getLatestVersionBefore(name, version) {
-        return this._request('GET', `/blocks/${name}/${version}/previous`);
+        return this._request('GET', `/blocks/${encodeURIComponent(name)}/${encodeURIComponent(version)}/previous`);
     }
 
     /**

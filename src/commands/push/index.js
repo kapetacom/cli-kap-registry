@@ -540,11 +540,15 @@ class PushOperation {
 
 /**
  *
- * @param {string} file
+ * @param {string} [file="block.yml"]
  * @param {PushCommandOptions} cmdObj
  * @returns {Promise<void>}
  */
 module.exports = async function push(file, cmdObj) {
+
+    if (!file) {
+        file = 'block.yml';
+    }
 
     const cli = new CLIHandler(!cmdObj.nonInteractive);
 

@@ -22,7 +22,7 @@ function catchError(callback) {
 
 
 program
-    .command('push <file>')
+    .command('push [file]')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('-i, --ignore-working-directory', 'Skip check for changes in working directory')
@@ -40,12 +40,6 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .description('Clone source code of block from registry - e.g. clone "blockware://my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
-
-program
-    .command('fork <blockuri> <newblockuri>')
-    .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
-    .description('Fork and clone source code of block from registry - e.g. fork "blockware://other-company/their-block" "blockware://my-company/their-block"')
-    .action(catchError(require('./src/commands/fork')));
 
 program
     .command('pull-image <blockuri>')
