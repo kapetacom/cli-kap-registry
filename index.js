@@ -38,6 +38,7 @@ program
 program
     .command('clone <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
+    .option('-t, --target <path>', 'Clone to this path. Defaults to current working dir + organisation + name')
     .description('Clone source code of block from registry - e.g. clone "blockware://my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
 
