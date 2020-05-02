@@ -1,109 +1,109 @@
 
-const BlockVersionCalculator = require('../../src/utils/BlockVersionCalculator');
+const VersionCalculator = require('../../src/utils/VersionCalculator');
 
-describe('BlockVersionCalculator', () => {
+describe('VersionCalculator', () => {
 
     it('can parse well formed version', () => {
-        const version = BlockVersionCalculator.parseVersion('12.34.56');
+        const version = VersionCalculator.parseVersion('12.34.56');
         expect(version.major).toBe(12);
         expect(version.minor).toBe(34);
         expect(version.patch).toBe(56);
     });
 
     it('can convert version segment to number', () => {
-        expect(BlockVersionCalculator.typeToNumber(BlockVersionCalculator.MAJOR)).toBe(3);
-        expect(BlockVersionCalculator.typeToNumber(BlockVersionCalculator.MINOR)).toBe(2);
-        expect(BlockVersionCalculator.typeToNumber(BlockVersionCalculator.PATCH)).toBe(1);
-        expect(BlockVersionCalculator.typeToNumber(BlockVersionCalculator.NONE)).toBe(0);
+        expect(VersionCalculator.typeToNumber(VersionCalculator.MAJOR)).toBe(3);
+        expect(VersionCalculator.typeToNumber(VersionCalculator.MINOR)).toBe(2);
+        expect(VersionCalculator.typeToNumber(VersionCalculator.PATCH)).toBe(1);
+        expect(VersionCalculator.typeToNumber(VersionCalculator.NONE)).toBe(0);
     });
 
     it('can increment version given version segment', () => {
         const version = '1.0.0';
-        expect(BlockVersionCalculator.incrementVersionBy(version, BlockVersionCalculator.MAJOR)).toBe('2.0.0');
-        expect(BlockVersionCalculator.incrementVersionBy(version, BlockVersionCalculator.MINOR)).toBe('1.1.0');
-        expect(BlockVersionCalculator.incrementVersionBy(version, BlockVersionCalculator.PATCH)).toBe('1.0.1');
-        expect(BlockVersionCalculator.incrementVersionBy(version, BlockVersionCalculator.NONE)).toBe('1.0.0');
+        expect(VersionCalculator.incrementVersionBy(version, VersionCalculator.MAJOR)).toBe('2.0.0');
+        expect(VersionCalculator.incrementVersionBy(version, VersionCalculator.MINOR)).toBe('1.1.0');
+        expect(VersionCalculator.incrementVersionBy(version, VersionCalculator.PATCH)).toBe('1.0.1');
+        expect(VersionCalculator.incrementVersionBy(version, VersionCalculator.NONE)).toBe('1.0.1');
     });
 
     it('can calculate increment type between 2 versions', () => {
         const version = '1.0.0';
-        expect(BlockVersionCalculator.calculateIncrementType(version,'2.3.4')).toBe(BlockVersionCalculator.MAJOR);
-        expect(BlockVersionCalculator.calculateIncrementType(version,'1.3.4')).toBe(BlockVersionCalculator.MINOR);
-        expect(BlockVersionCalculator.calculateIncrementType(version,'1.0.4')).toBe(BlockVersionCalculator.PATCH);
-        expect(BlockVersionCalculator.calculateIncrementType(version, version)).toBe(BlockVersionCalculator.NONE);
+        expect(VersionCalculator.calculateIncrementType(version,'2.3.4')).toBe(VersionCalculator.MAJOR);
+        expect(VersionCalculator.calculateIncrementType(version,'1.3.4')).toBe(VersionCalculator.MINOR);
+        expect(VersionCalculator.calculateIncrementType(version,'1.0.4')).toBe(VersionCalculator.PATCH);
+        expect(VersionCalculator.calculateIncrementType(version, version)).toBe(VersionCalculator.NONE);
     });
 
     it('can compare increment types', () => {
 
         /* -- MAJOR -- */
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MAJOR,BlockVersionCalculator.MAJOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MAJOR,VersionCalculator.MAJOR))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MAJOR,BlockVersionCalculator.MINOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MAJOR,VersionCalculator.MINOR))
             .toBe(true);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MAJOR,BlockVersionCalculator.PATCH))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MAJOR,VersionCalculator.PATCH))
             .toBe(true);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MAJOR,BlockVersionCalculator.NONE))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MAJOR,VersionCalculator.NONE))
             .toBe(true);
 
         /* -- MINOR -- */
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MINOR,BlockVersionCalculator.MAJOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MINOR,VersionCalculator.MAJOR))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MINOR,BlockVersionCalculator.MINOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MINOR,VersionCalculator.MINOR))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MINOR,BlockVersionCalculator.PATCH))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MINOR,VersionCalculator.PATCH))
             .toBe(true);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.MINOR,BlockVersionCalculator.NONE))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.MINOR,VersionCalculator.NONE))
             .toBe(true);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.PATCH,BlockVersionCalculator.MAJOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.PATCH,VersionCalculator.MAJOR))
             .toBe(false);
 
         /* -- PATCH -- */
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.PATCH,BlockVersionCalculator.MINOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.PATCH,VersionCalculator.MINOR))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.PATCH,BlockVersionCalculator.PATCH))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.PATCH,VersionCalculator.PATCH))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.PATCH,BlockVersionCalculator.NONE))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.PATCH,VersionCalculator.NONE))
             .toBe(true);
 
         /* -- NONE -- */
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.NONE,BlockVersionCalculator.MAJOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.NONE,VersionCalculator.MAJOR))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.NONE,BlockVersionCalculator.MINOR))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.NONE,VersionCalculator.MINOR))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.NONE,BlockVersionCalculator.PATCH))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.NONE,VersionCalculator.PATCH))
             .toBe(false);
 
-        expect(BlockVersionCalculator
-            .isIncrementGreaterThan(BlockVersionCalculator.NONE,BlockVersionCalculator.NONE))
+        expect(VersionCalculator
+            .isIncrementGreaterThan(VersionCalculator.NONE,VersionCalculator.NONE))
             .toBe(false);
 
     });
@@ -114,12 +114,12 @@ describe('BlockVersionCalculator', () => {
 
         let calculator;
         beforeEach(() => {
-            calculator = new BlockVersionCalculator();
+            calculator = new VersionCalculator();
         });
 
         it('can compare entities', () => {
 
-            expect(calculator.compareEntities([],[])).toBe(BlockVersionCalculator.NONE);
+            expect(calculator.compareEntities([],[])).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareEntities(
                 [
@@ -128,14 +128,14 @@ describe('BlockVersionCalculator', () => {
                 [
                     {name:'User', properties:{email:{type:'string'}}}
                 ]
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareEntities(
                 [
                     {name:'User', properties:{email:{type:'string'}}}
                 ],
                 []
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
             expect(calculator.compareEntities(
                 [
@@ -143,7 +143,7 @@ describe('BlockVersionCalculator', () => {
                 [
                     {name:'User', properties:{email:{type:'string'}}}
                 ]
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareEntities(
                 [
@@ -152,7 +152,7 @@ describe('BlockVersionCalculator', () => {
                 [
                     {name:'User', properties:{email:{type:'string'}}}
                 ]
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareEntities(
                 [
@@ -162,7 +162,7 @@ describe('BlockVersionCalculator', () => {
                 [
                     {name:'User', properties:{email:{type:'string'}}}
                 ]
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
         });
 
@@ -170,7 +170,7 @@ describe('BlockVersionCalculator', () => {
             expect(calculator.compareMethods(
                 {},
                 {}
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareMethods(
                 {
@@ -179,7 +179,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 }
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareMethods(
                 {
@@ -188,7 +188,7 @@ describe('BlockVersionCalculator', () => {
                 {
 
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
             expect(calculator.compareMethods(
                 {
@@ -197,7 +197,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareMethods(
                 {
@@ -206,7 +206,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     getUser: {path:'/user/{id}',arguments: {id: {type:'number'} }}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareMethods(
                 {
@@ -216,7 +216,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
         });
 
@@ -224,39 +224,39 @@ describe('BlockVersionCalculator', () => {
             expect(calculator.compareResources(
                 {},
                 {}
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareResources(
                 {kind:'db',metadata:{name:'my-db'}},
                 {kind:'db',metadata:{name:'my-db'}}
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareResources(
                 {kind:'db',metadata:{name:'my-db'}, spec: {something:true}},
                 {kind:'db',metadata:{name:'my-db'}, spec: {something:true}}
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareResources(
                 {kind:'db',metadata:{name:'my-db'}, spec: {something:true}},
                 {kind:'db',metadata:{name:'my-db'}}
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareResources(
                 {kind:'db',metadata:{name:'my-db'}},
                 {kind:'db',metadata:{name:'my-db'}, spec: {something:true}}
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareResources(
                 {kind:'db',metadata:{name:'my-db'}, spec: {other:true}},
                 {kind:'db',metadata:{name:'my-db'}, spec: {something:true}}
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
         });
 
         it('can compare resource maps', () => {
             expect(calculator.compareResourceMaps(
                 {},
                 {}
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareResourceMaps(
                 {
@@ -265,7 +265,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     'db:my-db':{kind:'db',metadata:{name:'my-db'}, spec: {something:true}}
                 }
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareResourceMaps(
                 {
@@ -273,7 +273,7 @@ describe('BlockVersionCalculator', () => {
                 },
                 {
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
             expect(calculator.compareResourceMaps(
                 {
@@ -281,7 +281,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     'db:my-db':{kind:'db',metadata:{name:'my-db'}, spec: {something:true}}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareResourceMaps(
                 {
@@ -290,7 +290,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     'db:my-db':{kind:'db',metadata:{name:'other-db'}, spec: {something:true}}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareResourceMaps(
                 {
@@ -300,7 +300,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     'db:my-db':{kind:'db',metadata:{name:'my-db'}, spec: {something:true}}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
         });
 
         it('can compare block definitions', async () => {
@@ -313,7 +313,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     kind: BLOCK_KIND
                 }
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -322,7 +322,7 @@ describe('BlockVersionCalculator', () => {
                 {
                     kind: BLOCK_KIND2
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
         });
 
         it('will return change if entities need it', async () => {
@@ -335,7 +335,7 @@ describe('BlockVersionCalculator', () => {
                     kind: BLOCK_KIND,
                     spec: {entities:[{name:'User'}]}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -346,7 +346,7 @@ describe('BlockVersionCalculator', () => {
                     kind: BLOCK_KIND,
                     spec: {entities:[]}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
         });
 
         it('will return change if provider resources need it', async () => {
@@ -359,7 +359,7 @@ describe('BlockVersionCalculator', () => {
                     kind: BLOCK_KIND,
                     spec: {providers:[{metadata:{name:'User'}}]}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -370,7 +370,7 @@ describe('BlockVersionCalculator', () => {
                     kind: BLOCK_KIND,
                     spec: {providers:[]}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
         });
 
         it('will return change if consumer resources need it', async () => {
@@ -383,7 +383,7 @@ describe('BlockVersionCalculator', () => {
                     kind: BLOCK_KIND,
                     spec: {consumers:[{metadata:{name:'User'}}]}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -394,7 +394,7 @@ describe('BlockVersionCalculator', () => {
                     kind: BLOCK_KIND,
                     spec: {consumers:[]}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
         });
 
         it('will return highest degree of change needed', async () => {
@@ -425,7 +425,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(BlockVersionCalculator.NONE);
+            )).toBe(VersionCalculator.NONE);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -455,7 +455,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -485,7 +485,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -515,7 +515,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -545,7 +545,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(BlockVersionCalculator.MINOR);
+            )).toBe(VersionCalculator.MINOR);
 
             expect(await calculator.compareBlockDefinitions(
                 {
@@ -575,7 +575,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(BlockVersionCalculator.MAJOR);
+            )).toBe(VersionCalculator.MAJOR);
 
         });
 
@@ -614,7 +614,7 @@ describe('BlockVersionCalculator', () => {
                             {name:'User'}
                         ]}
                 }
-            )).toBe(metadata.version);
+            )).toBe('1.0.1');
 
             expect(await calculator.calculateNextVersion(
                 {

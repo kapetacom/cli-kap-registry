@@ -13,6 +13,9 @@
     "url": "https://github.com/blockwarecom/blockctl-command-registry/issues"
   },
   "homepage": "https://github.com/blockwarecom/blockctl-command-registry#readme",
+  "scripts": {
+    "test": "jest test/specs"
+  },
   "dependencies": {
     "@blockware/blockctl-command": "0.0.2",
     "@blockware/local-cluster-config": "^0.0.7",
@@ -29,5 +32,9 @@
     "tar-fs": "^2.0.1",
     "yaml": "^1.9.2",
     "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "jest": "^25.3.0"
   }
 }
