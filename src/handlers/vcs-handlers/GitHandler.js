@@ -144,8 +144,7 @@ class GitHandler {
         const remotes = await git.getRemotes(true);
 
         //git rev-parse --show-toplevel
-        const topLevelDir = await git.revparse('--show-toplevel');
-        console.log('topLevelDir', topLevelDir);
+        const topLevelDir = await git.revparse(['--show-toplevel']);
         let relativePath;
         if (directory.indexOf(topLevelDir) === 0) {
             relativePath = directory.substr(topLevelDir.length + 1);

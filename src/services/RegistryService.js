@@ -23,7 +23,7 @@ class RegistryService {
      * @returns {Promise<Reservation>}
      */
     async reserveVersion(blockDefinition, options) {
-        return  this._request('POST', `/blocks/reservation/create`, blockDefinition, options);
+        return  this._request('POST', `/block/reservation/create`, blockDefinition, options);
     }
 
     /**
@@ -33,7 +33,7 @@ class RegistryService {
      * @returns {Promise<BlockRegistration>}
      */
     async commitReservation(reservation, options) {
-        return this._request('POST', `/blocks/reservation/commit`, reservation, options);
+        return this._request('POST', `/block/reservation/commit`, reservation, options);
     }
 
     /**
@@ -43,7 +43,7 @@ class RegistryService {
      * @returns {Promise<void>}
      */
     async abortReservation(reservation, options) {
-        return this._request('POST', `/blocks/reservation/abort`, reservation, options);
+        return this._request('POST', `/block/reservation/abort`, reservation, options);
     }
 
     /**
@@ -53,7 +53,7 @@ class RegistryService {
      * @returns {Promise<BlockRegistration>}
      */
     async getVersion(name, version) {
-        return this._request('GET', `/blocks/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
+        return this._request('GET', `/block/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
     }
 
     /**
@@ -63,7 +63,7 @@ class RegistryService {
      * @returns {Promise<BlockRegistration>}
      */
     async getLatestVersionBefore(name, version) {
-        return this._request('GET', `/blocks/${encodeURIComponent(name)}/${encodeURIComponent(version)}/previous`);
+        return this._request('GET', `/block/${encodeURIComponent(name)}/${encodeURIComponent(version)}/previous`);
     }
 
     /**
@@ -79,13 +79,12 @@ class RegistryService {
         try {
             const requestOptions = {
                 method,
-                url: this.baseUrl + path,
+                url: this.baseUrl + `/${encodeURIComponent(this.organisationId)}${path}`,
                 body,
                 json: true,
                 headers: {
                     'accept': 'application/json',
-                    [HEADER_OPTS]: JSON.stringify(options || {}),
-                    [HEADER_ORG]: this.organisationId
+                    [HEADER_OPTS]: JSON.stringify(options || {})
                 }
             };
 

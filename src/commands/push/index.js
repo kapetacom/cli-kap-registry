@@ -213,10 +213,10 @@ class PushOperation {
             const latestDefinition = await this._registryService.getLatestVersionBefore(this.name, this.version);
 
             if (latestDefinition) {
-                const latestVersion = latestDefinition.block.metadata.version;
+                const latestVersion = latestDefinition.data.metadata.version;
                 const actualIncrement = VersionCalculator.calculateIncrementType(latestVersion, this.version);
 
-                const nextAutoVersion = await this._versionCalculator.calculateNextVersion(this.blockDefinition, latestDefinition.block);
+                const nextAutoVersion = await this._versionCalculator.calculateNextVersion(this.blockDefinition, latestDefinition.data);
 
                 const requiredIncrement = VersionCalculator.calculateIncrementType(latestVersion, nextAutoVersion);
 
@@ -248,7 +248,7 @@ class PushOperation {
                 }
 
                 //Calculate new version based on the diff set between old and new definitions
-                this.blockDefinition.metadata.version = await this._versionCalculator.calculateNextVersion(this.blockDefinition, existingDefinition.block);
+                this.blockDefinition.metadata.version = await this._versionCalculator.calculateNextVersion(this.blockDefinition, existingDefinition.data);
                 this._cli.info(`Calculated next semantic version to be: ${this.blockDefinition.metadata.version}`);
                 FS.writeFileSync(this.file, YAML.stringify(this.blockDefinition));
                 return true;
@@ -257,7 +257,7 @@ class PushOperation {
                 const latestVersion = await this._registryService.getLatestVersionBefore(this.name, this.version);
                 if (latestVersion) {
                     this._cli.warn(`Existing version ${this.version} not found. Auto-versioning requires that you do not change the version manually.`);
-                    this._cli.warn(`- Latest version found was ${latestVersion.block.metadata.version}.`);
+                    this._cli.warn(`- Latest version found was ${latestVersion.data.metadata.version}.`);
                 }
             }
 

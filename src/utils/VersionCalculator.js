@@ -155,6 +155,7 @@ class VersionCalculator {
             newDefinition.spec = {};
         }
 
+        //TODO: Comparing block definitions should be moved to block kind providers
         const entityMatchType = this.compareEntities(newDefinition.spec.entities, existingDefinition.spec.entities);
         if (entityMatchType === VersionCalculator.MAJOR) {
             return entityMatchType;
@@ -281,6 +282,7 @@ class VersionCalculator {
         const kind = newResource.kind.toLowerCase();
 
         switch (kind) {
+            //TODO: Special handling per resource kind should be moved to providers
             case 'rest.blockware.com/v1/api':
             case 'rest.blockware.com/v1/client':
             case 'grpc.blockware.com/v1/api':
