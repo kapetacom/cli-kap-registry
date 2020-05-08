@@ -100,6 +100,10 @@ class CLIHandler {
         if (!this._screen) {
             return;
         }
+
+        const snapshot = this._screen.screenshot();
+        this._screen.destroy();
+        process.stdout.write(snapshot);
     }
 
     _startProgress() {
