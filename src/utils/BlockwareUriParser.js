@@ -10,7 +10,7 @@ exports.parseBlockwareUri = function parseBlockwareUri(uri) {
     }
 
     let [,
-        organizationId,
+        handle,
         name,
         version
     ] = rx.exec(uri);
@@ -20,7 +20,7 @@ exports.parseBlockwareUri = function parseBlockwareUri(uri) {
     }
 
     return {
-        organizationId,
+        handle,
         name,
         version
     };

@@ -16,7 +16,7 @@ module.exports = async function pullImage(uri, cmdObj) {
 
     const registryService = new RegistryService(
         cmdObj.registry || Config.data.registry.url,
-        blockInfo.organizationId
+        blockInfo.handle
     );
 
     const cli = new CLIHandler(true);

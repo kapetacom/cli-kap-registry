@@ -1,7 +1,6 @@
 
 
 const request = require('request-promise-native');
-const HEADER_ORG = 'x-blockware-org';
 const HEADER_OPTS = 'x-blockware-options';
 
 class RegistryService {
@@ -9,11 +8,11 @@ class RegistryService {
     /**
      *
      * @param {string} baseUrl
-     * @param {string} organisationId
+     * @param {string} handle
      */
-    constructor(baseUrl, organisationId) {
+    constructor(baseUrl, handle) {
         this.baseUrl = baseUrl;
-        this.organisationId = organisationId;
+        this.handle = handle;
     }
 
     /**
@@ -79,7 +78,7 @@ class RegistryService {
         try {
             const requestOptions = {
                 method,
-                url: this.baseUrl + `/${encodeURIComponent(this.organisationId)}${path}`,
+                url: this.baseUrl + `/${encodeURIComponent(this.handle)}${path}`,
                 body,
                 json: true,
                 headers: {

@@ -19,7 +19,7 @@ module.exports = async function clone(uri, cmdObj) {
 
     const registryService = new RegistryService(
         cmdObj.registry || Config.data.registry.url,
-        blockInfo.organizationId
+        blockInfo.handle
     );
 
     const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
