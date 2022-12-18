@@ -62,7 +62,6 @@ class RegistryService {
         return this._request('GET', `/${encodeURIComponent(this.handle)}/${encodeURIComponent(name)}/${encodeURIComponent(version)}/previous`);
     }
 
-
     async _request(method, path, body, headers) {
         try {
             const requestOptions = {
