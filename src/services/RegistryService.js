@@ -1,7 +1,4 @@
-
-
 const request = require('request-promise-native');
-const HEADER_OPTS = 'x-blockware-options';
 
 class RegistryService {
 
@@ -17,73 +14,65 @@ class RegistryService {
 
     /**
      *
-     * @param {BlockDefinition} blockDefinition
-     * @param {object} [options]
+     * @param {AssetDefinition[]} assets
      * @returns {Promise<Reservation>}
      */
-    async reserveVersion(blockDefinition, options) {
-        return  this._request('POST', `/block/reservation/create`, blockDefinition, options);
+    async reserveVersions(assets) {
+        return  this._request('POST', `/reservation`, assets);
     }
 
     /**
      *
-     * @param {Reservation} reservation
-     * @param {object} [options]
-     * @returns {Promise<BlockRegistration>}
-     */
-    async commitReservation(reservation, options) {
-        return this._request('POST', `/block/reservation/commit`, reservation, options);
-    }
-
-    /**
-     *
-     * @param {Reservation} reservation
-     * @param {object} [options]
+     * @param {string} reservationId
+     * @param {AssetVersion[]} assetVersions
      * @returns {Promise<void>}
      */
-    async abortReservation(reservation, options) {
-        return this._request('POST', `/block/reservation/abort`, reservation, options);
+    async commitReservation(reservationId, assetVersions ) {
+        return this._request('POST', `/`, assetVersions, {
+            'If-Match': reservationId
+        });
+    }
+
+    /**
+     *
+     * @param {Reservation} reservation
+     * @returns {Promise<void>}
+     */
+    async abortReservation(reservation) {
+        return this._request('DELETE', `/reservations/${encodeURIComponent(reservation.reservationId)}/abort`);
     }
 
     /**
      *
      * @param {string} name
      * @param {string} version
-     * @returns {Promise<BlockRegistration>}
+     * @returns {Promise<AssetVersion>}
      */
     async getVersion(name, version) {
-        return this._request('GET', `/block/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
+        return this._request('GET', `/${encodeURIComponent(this.handle)}/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
     }
 
     /**
      *
      * @param {string} name
      * @param {string} version
-     * @returns {Promise<BlockRegistration>}
+     * @returns {Promise<AssetVersion>}
      */
     async getLatestVersionBefore(name, version) {
-        return this._request('GET', `/block/${encodeURIComponent(name)}/${encodeURIComponent(version)}/previous`);
+        return this._request('GET', `/${encodeURIComponent(this.handle)}/${encodeURIComponent(name)}/${encodeURIComponent(version)}/previous`);
     }
 
-    /**
-     *
-     * @param {string} name
-     * @returns {Promise<BlockRegistration>}
-     */
-    async getLatestVersion(name) {
-        return this.getVersion(name, 'latest');
-    }
 
-    async _request(method, path, body, options) {
+    async _request(method, path, body, headers) {
         try {
             const requestOptions = {
                 method,
-                url: this.baseUrl + `/${encodeURIComponent(this.handle)}${path}`,
+                url: this.baseUrl + `//v1/registry${path}`,
                 body,
                 json: true,
                 headers: {
                     'accept': 'application/json',
-                    [HEADER_OPTS]: JSON.stringify(options || {})
+                    ...headers
                 }
             };
 

@@ -195,7 +195,7 @@ class CLIHandler {
      *
      * @param {string} message
      * @param {PromiseOrCallback|boolean} ok
-     * @returns {boolean}
+     * @returns {Promise<boolean>}
      */
     async check(message, ok) {
         const okType = typeof ok;

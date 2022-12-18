@@ -22,18 +22,20 @@ module.exports = async function clone(uri, cmdObj) {
         blockInfo.handle
     );
 
+    const cli = new CLIHandler(true);
+
     const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
 
     if (!registration) {
         throw new Error('Registration not found: ' + uri);
     }
 
-    if (!registration.vcs ||
-        !registration.vcs.type) {
+    if (!registration.repository ||
+        !registration.repository.type) {
         throw new Error('Registration is missing version control information: ' + uri);
     }
 
-    const handler = await VCSHandler.getVCSHandlerByType(cli, registration.vcs.type);
+    const handler = await VCSHandler.getVCSHandlerByType(cli, registration.repository.type);
 
     if (!handler) {
         throw new Error('No version control handler found for type: ' + registration.vcs.type);
@@ -41,12 +43,11 @@ module.exports = async function clone(uri, cmdObj) {
 
     try {
 
-
         const cli = new CLIHandler(true);
 
         cli.start('Clone repository');
 
-        const target = cmdObj.target || Path.join(process.cwd(), blockInfo.organizationId, registration.block.metadata.name);
+        const target = cmdObj.target || Path.join(process.cwd(), registration.content.metadata.name);
         await cli.progress('Preparing for repository clone', async () => {
             const targetParent = Path.resolve(target, '../');
 
@@ -58,7 +59,7 @@ module.exports = async function clone(uri, cmdObj) {
             }
         });
 
-        await handler.clone(registration.vcs.checkout, registration.vcs.commitId, target);
+        await handler.clone(registration.repository.checkout, registration.repository.commit, target);
     } catch (e) {
         cli.error(e.message);
     } finally {

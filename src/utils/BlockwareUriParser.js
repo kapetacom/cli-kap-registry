@@ -5,7 +5,7 @@ exports.parseBlockwareUri = function parseBlockwareUri(uri) {
 
     const rx = /^(?:blockware:\/\/)?([^\/\s:]+)\/([^\s:\/]+)(?::([^\s]+))?$/i;
 
-    if (!rx.test(uri)) {
+    if (!rx.test(uri)) {
         throw new Error('Invalid blockware uri: ' + uri);
     }
 

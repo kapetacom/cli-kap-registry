@@ -39,19 +39,19 @@ program
     .command('clone <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Clone to this path. Defaults to current working dir + organisation + name')
-    .description('Clone source code of block from registry - e.g. clone "blockware://my-company/my-block"')
+    .description('Clone source code of block from registry - e.g. clone "my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
 
 program
-    .command('pull-image <blockuri>')
+    .command('pull <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
-    .description('Pull docker image for block from registry - e.g. pull "blockware://my-company/my-block"')
-    .action(catchError(require('./src/commands/pull-image')));
+    .description('Pull docker image for block from registry - e.g. pull "my-company/my-block"')
+    .action(catchError(require('./src/commands/pull')));
 
 program
     .command('view <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
-    .description('View block definition - e.g. view "blockware://my-company/my-block"')
+    .description('View block definition - e.g. view "my-company/my-block"')
     .action(catchError(require('./src/commands/view')));
 
 program
