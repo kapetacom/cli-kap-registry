@@ -25,12 +25,12 @@ class YAMLHandler {
         }
     }
 
-    static getName() {
-        return "YAML File";
-    }
-
     static getType() {
         return "yaml";
+    }
+
+    getName() {
+        return "YAML File";
     }
 
     static isSupported(directory) {
@@ -66,6 +66,14 @@ class YAMLHandler {
      */
     pull(details) {
         return Promise.reject(new Error('Not implemented'));
+    }
+
+    async build() {
+        //Meant as a pre-test thing
+    }
+
+    async test() {
+        //Meant as a pre-test thing
     }
 }
 

@@ -66,7 +66,7 @@ class RegistryService {
         try {
             const requestOptions = {
                 method,
-                url: this.baseUrl + `//v1/registry${path}`,
+                url: this.baseUrl + `/v1/registry${path}`,
                 body,
                 json: true,
                 headers: {

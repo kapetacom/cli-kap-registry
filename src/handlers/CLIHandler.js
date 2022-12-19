@@ -2,6 +2,8 @@ const Util = require('util');
 const _ = require('lodash');
 const blessed = require('blessed');
 const OverviewEntry = require('./cli/OverviewEntry.js');
+const {spawn} = require("child_process");
+const {promisifyChild} = require("../utils/PromiseUtils");
 
 function checkMark(ok) {
     return ok ? '✓' : '✖'
@@ -19,6 +21,23 @@ class CLIHandler {
         this._entries = 0;
 
         this._sections = 0;
+    }
+
+    async run(command, directory) {
+        const child = spawn(command, {
+            cwd: directory ? directory : process.cwd(),
+            detached: true,
+            shell: true,
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+
+        const result = await promisifyChild(child, (data) => {
+            this.debug(data.line);
+        });
+
+        if (result.exit !== 0) {
+            throw new Error('Script failed');
+        }
     }
 
     start(title) {
@@ -101,6 +120,8 @@ class CLIHandler {
             return;
         }
 
+        this._screen.render();
+
         const snapshot = this._screen.screenshot();
         this._screen.destroy();
         process.stdout.write(snapshot);
@@ -155,7 +176,7 @@ class CLIHandler {
 
                 this.nestingLevel++;
 
-                if (promise instanceof Function) {
+                if (typeof promise === 'function') {
                     out = await promise();
                 } else {
                     out = await promise;
@@ -332,7 +353,7 @@ class CLIHandler {
 
 
     _println(text) {
-        if (this._screen) {
+        if (this.interactive) {
             this._details.add(text);
         } else {
             process.stdout.write(text + "\n");

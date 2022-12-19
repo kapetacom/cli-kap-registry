@@ -12,14 +12,10 @@ interface PushCommandOptions {
     ignoreWorkingDirectory: boolean
     nonInteractive: boolean
     skipTests: boolean
-    autoVersioning: boolean
-    checkVersion: boolean
-    reserveTtl: number
-    dryRun: boolean
     verbose: boolean
 }
 
-interface GitCheckoutInfo {
+interface GitDetails {
     url: string
     remote: string
     branch: string
@@ -44,8 +40,6 @@ interface YAMLDetails {
 interface ArtifactHandlerFactory {
     create(cli:CLIHandler, directory:string):ArtifactHandler;
 
-    getName(): string
-
     getType(): string
 
     isSupported(directory: string): Promise<boolean>
@@ -53,11 +47,17 @@ interface ArtifactHandlerFactory {
 
 interface ArtifactHandler<T extends any = any> {
 
+    getName(): string
+
     calculateChecksum(): Promise<string>
 
     push(name:string, version:string, commit:string): Promise<Artifact<T>>
 
     pull(details:T):Promise<void>
+
+    build():Promise<void>;
+
+    test():Promise<void>;
 }
 
 interface VCSHandler {
@@ -90,7 +90,7 @@ interface VCSHandler {
     isWorkingDirectoryUpToDate(directory: string): Promise<boolean>;
 }
 
-interface Artifact<T extends any> {
+interface Artifact<T extends any = any> {
     // The type of the artifact. i.e. docker, npm, maven etc
     type: string;
     // Details about the artifact
@@ -98,15 +98,15 @@ interface Artifact<T extends any> {
 }
 
 
-interface Repository {
+interface Repository<T extends any = any> {
     //The type of repository
     type: string
 
     // Commit is the commit hash of the repository from where the block was built.
     commit: string
 
-    // Checkout information
-    checkout: any
+    // Type-specific details
+    details: T
 
 }
 
@@ -122,10 +122,10 @@ interface ReservedVersion {
     content:AssetDefinition
 }
 
-interface AssetVersion<T extends any = any> {
+interface AssetVersion<T extends any = any, U extends any = any> {
     version: string
     artifact: Artifact<T>
-    repository: Repository
+    repository: Repository<U>
     content: AssetDefinition
     checksum?: string
 }

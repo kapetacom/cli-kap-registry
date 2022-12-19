@@ -27,9 +27,6 @@ class DockerHandler {
 
     }
 
-    static getName() {
-        return "Docker";
-    }
 
     static getType() {
         return "docker";
@@ -47,6 +44,11 @@ class DockerHandler {
     static create(cli, directory) {
         return new DockerHandler(cli, directory);
     }
+
+    getName() {
+        return "Docker";
+    }
+
 
     /**
      *
@@ -203,6 +205,14 @@ class DockerHandler {
         await this._cli.progress(`Pulling docker image: ${details.primary}`, async () => {
             await this._dockerService.pull(details.primary);
         });
+    }
+
+    async build() {
+        //Meant as a pre-test thing
+    }
+
+    async test() {
+        //Meant as a pre-test thing
     }
 }
 

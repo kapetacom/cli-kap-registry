@@ -176,25 +176,31 @@ class PushOperation {
         return this.reservation;
     }
 
-    async _runScript(file) {
-        const child = spawn('./scripts/' + file, {
-            cwd: this._directory,
-            detached: true,
-            shell: true,
-            stdio: ['ignore', 'pipe', 'pipe']
-        });
-
-        const result = await promisifyChild(child, (data) => {
-            this._cli.debug(data.line);
-        });
-
-        if (result.exit !== 0) {
-            throw new Error('Script failed');
-        }
-
+    _hasScript(file) {
+        const scriptPath = './scripts/' + file;
+        return FS.existsSync(scriptPath);
     }
 
-    async runTests() {
+    async _runScript(file) {
+        const scriptPath = './scripts/' + file;
+        if (!this._hasScript(file)) {
+            throw new Error('Script not found: ' + scriptPath);
+        }
+
+        const stat = FS.statSync(scriptPath);
+        if (!stat.isFile()) {
+            throw new Error('Script not a file: ' + scriptPath);
+        }
+
+        return this._cli.run(scriptPath, this._directory);
+    }
+
+    /**
+     *
+     * @param {ArtifactHandler} artifactHandler
+     * @returns {Promise<void>}
+     */
+    async runTests(artifactHandler) {
         if (this.cmdObj.skipTests) {
             this._cli.info("Skipping tests...");
             return;
@@ -202,20 +208,33 @@ class PushOperation {
 
         try {
             await this._cli.progress('Running tests', async () => {
-                return this._runScript('test.sh');
+                if (this._hasScript('test.sh')) {
+                    return this._runScript('test.sh');
+                } else {
+                    return artifactHandler.test();
+                }
             });
         } catch (e) {
             throw new Error('Tests failed');
         }
     }
 
-    async runBuild() {
+    /**
+     *
+     * @param {ArtifactHandler} artifactHandler
+     * @returns {Promise<void>}
+     */
+    async runBuild(artifactHandler) {
         try {
             await this._cli.progress('Building block', async () => {
-                return this._runScript('build.sh');
+                if (this._hasScript('build.sh')) {
+                    return this._runScript('build.sh');
+                } else {
+                    return artifactHandler.build();
+                }
             });
         } catch (e) {
-            throw new Error('Build failed');
+            throw e;
         }
     }
 
@@ -255,9 +274,7 @@ class PushOperation {
      * @returns {Promise<void>}
      */
     async perform() {
-
         const vcsHandler = await this.vcsHandler();
-
         const artifactHandler = await this.artifactHandler();
 
         //Make sure file structure is as expected
@@ -265,7 +282,9 @@ class PushOperation {
 
         await this._cli.progress('Verifying working directory', async () => this.checkWorkingDirectory());
 
-        await this.runBuild();
+        await this.runBuild(artifactHandler);
+
+        await this.runTests(artifactHandler);
 
         /**
          * Reserve registry version - start 2-phase commit
@@ -278,22 +297,23 @@ class PushOperation {
         );
 
         /**
-         *
          * @type {AssetVersion[]}
          */
         const assetVersions = [];
 
         try {
 
-            await this.runTests();
 
-            let commitId,
-                repository;
+            let commitId;
+            /**
+             * @type {Repository<any>}
+             */
+            let repository;
 
             if (vcsHandler) {
                 repository = {
                     type: vcsHandler.getType(),
-                    checkout: await vcsHandler.getCheckoutInfo(this._directory),
+                    details: await vcsHandler.getCheckoutInfo(this._directory),
                     commit: await this.getCurrentVcsCommit()
                 };
                 commitId = repository.commit;

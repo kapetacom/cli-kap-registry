@@ -27,10 +27,6 @@ program
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('-i, --ignore-working-directory', 'Skip check for changes in working directory')
     .option('-s, --skip-tests', 'Skip running tests')
-    .option('-a, --auto-versioning [enabled]', 'Automatically increment the semantic version', true)
-    .option('-c, --check-version [enabled]', 'Check that the version provided adheres to semantic versioning rules', true)
-    .option('-t, --reserve-ttl <ms>', 'How long to let a version reservation live before expiring', 5000)
-    .option('--dry-run', 'Only write what would happen - do not actually do anything')
     .option('-v, --verbose', 'Show additional output for debugging')
     .description('push block to registry')
     .action(catchError(require('./src/commands/push')));
