@@ -111,9 +111,9 @@ interface Repository<T extends any = any> {
 }
 
 interface Reservation {
-    versions:ReservedVersion[]
-    reservationId:string
+    id:string
     expires:number
+    versions:ReservedVersion[]
 }
 
 interface ReservedVersion {

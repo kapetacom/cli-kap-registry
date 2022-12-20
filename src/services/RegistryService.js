@@ -1,4 +1,5 @@
 const request = require('request-promise-native');
+const Authentication = require("./Authentication");
 
 class RegistryService {
 
@@ -10,6 +11,7 @@ class RegistryService {
     constructor(baseUrl, handle) {
         this.baseUrl = baseUrl;
         this.handle = handle;
+        this.authentication = new Authentication();
     }
 
     /**
@@ -18,7 +20,7 @@ class RegistryService {
      * @returns {Promise<Reservation>}
      */
     async reserveVersions(assets) {
-        return  this._request('POST', `/reservation`, assets);
+        return  this._request('POST', `/reserve`, assets);
     }
 
     /**
@@ -28,7 +30,7 @@ class RegistryService {
      * @returns {Promise<void>}
      */
     async commitReservation(reservationId, assetVersions ) {
-        return this._request('POST', `/`, assetVersions, {
+        return this._request('POST', `/publish`, assetVersions, {
             'If-Match': reservationId
         });
     }
@@ -39,7 +41,7 @@ class RegistryService {
      * @returns {Promise<void>}
      */
     async abortReservation(reservation) {
-        return this._request('DELETE', `/reservations/${encodeURIComponent(reservation.reservationId)}/abort`);
+        return this._request('DELETE', `/reservations/${encodeURIComponent(reservation.id)}/abort`);
     }
 
     /**
@@ -67,10 +69,11 @@ class RegistryService {
             const requestOptions = {
                 method,
                 url: this.baseUrl + `/v1/registry${path}`,
-                body,
+                body: body,
                 json: true,
                 headers: {
                     'accept': 'application/json',
+                    'authorization': `Bearer ${this.authentication.getToken()}`,
                     ...headers
                 }
             };

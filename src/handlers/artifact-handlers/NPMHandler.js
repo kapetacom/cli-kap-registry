@@ -54,7 +54,7 @@ class NPMHandler {
     async build() {
         let packageInfo = this._getPackageInfo();
         if ('build' in packageInfo.scripts) {
-            return this._cli.progress('Testing NPM package', () => this._cli.run('npm run build', this._directory));
+            return this._cli.progress('Building NPM package', () => this._cli.run('npm run build', this._directory));
         } else {
             return this._cli.warn('Not building using NPM - no build script found');
         }

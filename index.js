@@ -4,7 +4,6 @@ const BlockwareCommand = require('@blockware/blockctl-command');
 const packageData = require('./package');
 const Config = require('./src/config');
 
-
 const command = new BlockwareCommand(packageData.command, packageData.version);
 const program = command.program();
 

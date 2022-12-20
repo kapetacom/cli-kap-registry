@@ -256,7 +256,7 @@ class PushOperation {
      * @returns {Promise<void>}
      */
     async commitReservation(reservation, assetVersions) {
-        return await this._registryService.commitReservation(reservation.reservationId, assetVersions);
+        return await this._registryService.commitReservation(reservation.id, assetVersions);
     }
 
     /**
@@ -317,7 +317,7 @@ class PushOperation {
                     commit: await this.getCurrentVcsCommit()
                 };
                 commitId = repository.commit;
-                this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > ${assetVersion.version}`);
+                this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > [${reservation.versions.map(v => v.version).join(', ')}]`);
             }
 
             const checksum = await artifactHandler.calculateChecksum();
