@@ -49,6 +49,8 @@ interface ArtifactHandler<T extends any = any> {
 
     getName(): string
 
+    verify(): Promise<void>
+
     calculateChecksum(): Promise<string>
 
     push(name:string, version:string, commit:string): Promise<Artifact<T>>

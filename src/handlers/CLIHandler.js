@@ -38,6 +38,8 @@ class CLIHandler {
         if (result.exit !== 0) {
             throw new Error('Script failed');
         }
+
+        return result;
     }
 
     start(title) {

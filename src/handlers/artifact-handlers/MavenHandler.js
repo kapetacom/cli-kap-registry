@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Path = require('path');
+const Config = require("../../config");
 /**
  * @class
  * @implements {ArtifactHandler}
@@ -14,6 +15,7 @@ class MavenHandler {
     constructor(cli, directory) {
         this._cli = cli;
         this._directory = directory;
+        this._host = Config.data.registry.maven;
     }
 
     static getType() {
@@ -30,6 +32,13 @@ class MavenHandler {
 
     getName() {
         return "Maven";
+    }
+
+    async verify() {
+        const cmd = (process.platform === 'win32') ? 'where mvn' : 'which mvn';
+        return await this._cli.progress('Checking if NPM is available',
+            () => this._cli.run(cmd, this._directory)
+        );
     }
 
     calculateChecksum() {

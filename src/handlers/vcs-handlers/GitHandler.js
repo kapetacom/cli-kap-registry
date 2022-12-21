@@ -21,7 +21,7 @@ class GitHandler {
      * @returns {string}
      */
     static getType() {
-        return 'GIT';
+        return 'git';
     }
 
     /**
@@ -37,7 +37,7 @@ class GitHandler {
     }
 
     getType() {
-        return 'GIT';
+        return GitHandler.getType();
     }
 
     async add(directory, filename) {

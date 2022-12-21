@@ -1,8 +1,10 @@
-const FS = require('fs');
-const Path = require('path');
+const FS = require('node:fs');
+const Path = require('node:path');
+const URL = require('node:url');
 const DockerService = require("../../services/DockerService");
 const Config = require("../../config");
 const VersionCalculator = require("../../utils/VersionCalculator");
+const Authentication = require("../../services/Authentication");
 /**
  * @class
  * @implements {ArtifactHandler}
@@ -16,14 +18,9 @@ class DockerHandler {
     constructor(cli, directory) {
         this._cli = cli;
         this._directory = directory;
-        this._dockerService = new DockerService(this._cli);
+        this._hostInfo = URL.parse(Config.data.registry.docker);
+        this._dockerService = new DockerService(this._cli, this._hostInfo, new Authentication().getToken());
 
-        /**
-         *
-         * @type {string}
-         */
-        this.dockerRegistryHost = Config.data.registry.docker && Config.data.registry.docker.registry ?
-            Config.data.registry.docker.registry : '';
 
     }
 
@@ -49,6 +46,10 @@ class DockerHandler {
         return "Docker";
     }
 
+
+    async verify() {
+        return this._dockerService.ping();
+    }
 
     /**
      *
@@ -179,8 +180,8 @@ class DockerHandler {
      * @private
      */
     _getDockerImageName(name) {
-        if (this.dockerRegistryHost) {
-            return `${this.dockerRegistryHost}/${name}`.toLowerCase();
+        if (this._hostInfo) {
+            return `${this._hostInfo.host}/${name}`.toLowerCase();
         }
         return `${name}`.toLowerCase();
     }

@@ -50,12 +50,26 @@ program
     .action(catchError(require('./src/commands/view')));
 
 program
-    .command('set-url <registry>')
-    .description('Updates default registry url')
-    .action(catchError((registry) => {
-        Config.data.registry.url = registry;
+    .command('set-url <host>')
+    .description('Updates default registry host')
+    .action(catchError((host) => {
+        Config.data.registry.url = host;
         Config.save();
-        console.log('Default registry url set to %s', registry);
+        console.log('Default registry url set to %s', host);
+    }));
+
+program
+    .command('set-host <type> <host>')
+    .description('Updates default artifact host')
+    .action(catchError((type, host) => {
+        if (['npm','docker','maven'].indexOf(type) === -1) {
+            console.error('Invalid type. Must be one of: npm,docker or maven');
+            return;
+        }
+
+        Config.data.registry[type] = host;
+        Config.save();
+        console.log('Default host for %s set to %s', type, host);
     }));
 
 command.start();

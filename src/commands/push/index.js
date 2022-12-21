@@ -104,6 +104,7 @@ class PushOperation {
             this._artifactHandler = await ArtifactHandler.getArtifactHandler(this._cli, this._directory);
             if (this._artifactHandler) {
                 this._cli.showValue(`Identified artifact type`, this._artifactHandler.getName());
+                await this._cli.progress('Verifying artifact type handler', () => this._artifactHandler.verify());
             } else {
                 await this._cli.check(`Identified artifact type`, false);
             }
@@ -322,6 +323,8 @@ class PushOperation {
 
             const checksum = await artifactHandler.calculateChecksum();
 
+            this._cli.info(`Calculated checksum for artifact: ${checksum}`);
+
             for (let i = 0; i < reservation.versions.length; i++) {
                 const reservedVersion = reservation.versions[i];
                 const name = reservedVersion.content.metadata.name;
@@ -371,14 +374,13 @@ module.exports = async function push(file, cmdObj) {
 
     try {
         await operation.perform();
+        cli.end();
     } catch (err) {
         cli.error('Push failed: %s', err.message);
 
         if (cmdObj.verbose && err.stack) {
             cli.error(err.stack);
         }
-    } finally {
-        cli.end();
     }
 
 };

@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const FS = require('fs');
 const Path = require('path');
+const Config = require("../../config");
 /**
  * @class
  * @implements {ArtifactHandler}
@@ -15,14 +16,6 @@ class YAMLHandler {
     constructor(cli, directory) {
         this._cli = cli;
         this._directory = directory;
-        this._file = undefined;
-        if (FS.existsSync(Path.join(directory,'blockware.yml'))) {
-            this._file = Path.join(directory,'blockware.yml');
-        } else if (FS.existsSync(Path.join(directory,'blockware.yaml'))) {
-            this._file = Path.join(directory,'blockware.yaml');
-        } else {
-            throw new Error('Failed to find blockware YML file in folder: ' + directory);
-        }
     }
 
     static getType() {
@@ -33,20 +26,21 @@ class YAMLHandler {
         return "YAML File";
     }
 
-    static isSupported(directory) {
-        return FS.existsSync(Path.join(directory,'blockware.yml')) || FS.existsSync(Path.join(directory,'blockware.yaml'));
+    static isSupported() {
+        //Is always supported if there is a YAML file - and we wouldn't get here if there wasn't
+        return true;
     }
 
     static create(cli, directory) {
         return new YAMLHandler(cli, directory);
     }
 
-    async calculateChecksum() {
-        const hash = crypto.createHash('sha256');
-        const content = FS.readFileSync(this._file);
-        hash.update(content);
+    async verify() {
 
-        return hash.digest('hex');
+    }
+
+    async calculateChecksum() {
+        return '';
     }
 
     async push(name, version, commit) {
@@ -54,7 +48,8 @@ class YAMLHandler {
             type: YAMLHandler.getType(),
             details: {
                 name,
-                version
+                version,
+                commit
             }
         }
     }
