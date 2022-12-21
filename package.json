@@ -25,7 +25,7 @@
     "@blockware/local-cluster-config": "^0.0.7",
     "blessed": "^0.1.81",
     "docker-file-parser": "^1.0.4",
-    "dockerode": "^3.2.0",
+    "folder-hash": "^4.0.2",
     "glob": "^7.1.6",
     "lodash": "^4.17.15",
     "mkdirp": "^1.0.4",
@@ -34,6 +34,7 @@
     "request-promise-native": "^1.0.8",
     "simple-git": "^1.132.0",
     "tar-fs": "^2.0.1",
+    "xml-js": "^1.6.11",
     "yaml": "^1.9.2",
     "zlib": "^1.0.5"
   },

@@ -130,7 +130,6 @@ class NPMHandler {
             FS.unlinkSync(Path.join(this._directory, 'package.json'));
             FS.renameSync(backupFile, Path.join(this._directory, 'package.json'));
         }
-
     }
 
     _writePackageInfo(packageJson) {

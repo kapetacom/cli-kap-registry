@@ -32,6 +32,13 @@ interface DockerDetails {
     tags:string[]
 }
 
+interface MavenDetails {
+    groupId:string
+    artifactId:string
+    version:string
+    registry:string
+}
+
 interface YAMLDetails {
     name:string
     version:string

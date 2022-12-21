@@ -1,23 +1,19 @@
-const FS = require('fs');
-const Path = require('path');
+const FS = require('node:fs');
+const URL = require("node:url");
+const Path = require('node:path');
+const crypto = require("node:crypto");
+const XmlJS = require('xml-js');
 const Config = require("../../config");
+const { hashElement } = require('folder-hash');
+const os = require("os");
+const Authentication = require("../../services/Authentication");
+
+const MAVEN_SERVER_ID = 'blockware';
 /**
  * @class
- * @implements {ArtifactHandler}
+ * @implements {ArtifactHandler<MavenDetails>}
  */
 class MavenHandler {
-
-    /**
-     *
-     * @param {CLIHandler} cli
-     * @param {string} directory
-     */
-    constructor(cli, directory) {
-        this._cli = cli;
-        this._directory = directory;
-        this._host = Config.data.registry.maven;
-    }
-
     static getType() {
         return "maven";
     }
@@ -30,24 +26,171 @@ class MavenHandler {
         return new MavenHandler(cli, directory);
     }
 
+    static generateSettings() {
+        return XmlJS.xml2js(`<?xml version="1.0" encoding="UTF-8"?>
+                <settings   
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd" 
+                    xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                </settings>
+        `);
+    }
+
+    static generateServer(token) {
+        return XmlJS.xml2js(`
+            <server>
+                <id>${MAVEN_SERVER_ID}</id>
+                <configuration>
+                    <httpHeaders>
+                        <property>
+                            <name>Authorization</name>
+                            <value>Bearer ${token}</value>
+                        </property>
+                    </httpHeaders>
+                </configuration>
+            </server>
+        `).elements[0];
+    }
+
+    /**
+     *
+     * @param {CLIHandler} cli
+     * @param {string} directory
+     */
+    constructor(cli, directory) {
+        this._cli = cli;
+        this._directory = directory;
+        this._hostInfo = URL.parse(Config.data.registry.maven);
+        this._configFile = null;
+        this._ensureConfig();
+    }
+
+    _ensureConfig() {
+        this._configFile = `${os.homedir()}/.m2/settings.xml`;
+        let config;
+        if (FS.existsSync(this._configFile)) {
+            config = XmlJS.xml2js(FS.readFileSync(this._configFile).toString());
+            this._cli.info(`Ensuring maven server configuration in ${this._configFile}`);
+        } else {
+            this._configFile = `${os.tmpdir()}/maven-settings.xml`;
+            this._cli.info(`Writing temporary maven settings file to ${this._configFile}`);
+            config = MavenHandler.generateSettings();
+        }
+
+        let servers = config.elements[0].elements.find(e => e.name === 'servers');
+        if (!servers) {
+            servers = XmlJS.xml2js('<servers></servers>').elements[0];
+            config.elements[0].elements.push(servers);
+        }
+
+        let blockwareServer = servers.elements.find(server => {
+            return server.elements.find(el => el.name === 'id').elements[0].text === MAVEN_SERVER_ID;
+        });
+
+        const newServer = MavenHandler.generateServer(new Authentication().getToken());
+
+        if (blockwareServer) {
+            blockwareServer.elements = newServer.elements;
+        } else  {
+            blockwareServer = newServer;
+            servers.elements.push(blockwareServer);
+        }
+
+        const newSettings = XmlJS.js2xml(config, {spaces: 4});
+
+        FS.writeFileSync(this._configFile, newSettings);
+    }
+
+
     getName() {
         return "Maven";
     }
 
     async verify() {
         const cmd = (process.platform === 'win32') ? 'where mvn' : 'which mvn';
-        return await this._cli.progress('Checking if NPM is available',
+        return await this._cli.progress('Checking if MVN is available',
             () => this._cli.run(cmd, this._directory)
         );
     }
 
-    calculateChecksum() {
-        //Get all files in src/*
-        return Promise.reject(new Error('Not Implemented'));
+    async calculateChecksum() {
+        const result = await hashElement(Path.join(this._directory,'target'), {
+            folders: {
+                exclude: ['*'],
+                matchPath: false,
+                ignoreBasename: true,
+                ignoreRootName: true
+            },
+            files: {
+                include: ['*.jar']
+            }
+        });
+
+        if (result.children && result.children.length > 0) {
+            return result.children[0].hash
+        }
+
+        return result.hash;
     }
 
-    push(name, version, commit) {
-        return Promise.reject(new Error('Not Implemented'));
+    _writePOM(pomRaw) {
+        FS.writeFileSync(Path.join(this._directory, 'pom.xml'), pomRaw);
+    }
+
+    _makePOMBackup() {
+        const backupFile = Path.join(this._directory, 'pom.xml.original');
+        if (FS.existsSync(backupFile)) {
+            FS.unlinkSync(backupFile);
+        }
+        FS.copyFileSync(Path.join(this._directory, 'pom.xml'), backupFile);
+    }
+
+    _restorePOMBackup() {
+        const backupFile = Path.join(this._directory, 'pom.xml.original');
+        if (FS.existsSync(backupFile)) {
+            FS.unlinkSync(Path.join(this._directory, 'pom.xml'));
+            FS.renameSync(backupFile, Path.join(this._directory, 'pom.xml'));
+        }
+    }
+
+    async push(name, version, commit) {
+        const command = `mvn --settings "${this._configFile}" deploy -B -DaltDeploymentRepository=${MAVEN_SERVER_ID}::default::${this._hostInfo.href}`;
+
+        const [groupId, artifactId] = name.split(/\//);
+
+        this._makePOMBackup();
+
+        const pomRaw = FS.readFileSync(Path.join(this._directory, 'pom.xml')).toString();
+
+        const pom = XmlJS.xml2js(pomRaw);
+
+        const project = pom.elements[0];
+
+        project.elements.find(e => e.name === 'groupId').elements[0].text = groupId;
+        project.elements.find(e => e.name === 'artifactId').elements[0].text = artifactId;
+        project.elements.find(e => e.name === 'version').elements[0].text = version;
+
+        const newPom = XmlJS.js2xml(pom, {spaces: 4});
+
+        this._writePOM(newPom);
+
+        try {
+
+            await this._cli.progress('Deploying maven package',
+                () => this._cli.run(command, this._directory));
+        } finally {
+            this._restorePOMBackup();
+        }
+
+        return {
+            type: MavenHandler.getType(),
+            details: {
+                groupId,
+                artifactId,
+                version,
+                registry: this._hostInfo.href
+            }
+        }
     }
 
     pull(details) {
@@ -55,11 +198,11 @@ class MavenHandler {
     }
 
     async build() {
-        return this._cli.progress('Building maven package', () => this._cli.run('mvn package', this._directory));
+        return this._cli.progress('Building maven package', () => this._cli.run('mvn package -B', this._directory));
     }
 
     async test() {
-        return this._cli.progress('Testing maven package', () => this._cli.run('mvn test', this._directory));
+        return this._cli.progress('Testing maven package', () => this._cli.run('mvn test -B', this._directory));
     }
 }
 
