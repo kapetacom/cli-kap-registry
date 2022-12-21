@@ -312,10 +312,13 @@ class PushOperation {
             let repository;
 
             if (vcsHandler) {
+                const {branch, main} = await vcsHandler.getBranch(this._directory);
                 repository = {
                     type: vcsHandler.getType(),
                     details: await vcsHandler.getCheckoutInfo(this._directory),
-                    commit: await this.getCurrentVcsCommit()
+                    commit: await this.getCurrentVcsCommit(),
+                    branch,
+                    main
                 };
                 commitId = repository.commit;
                 this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > [${reservation.versions.map(v => v.version).join(', ')}]`);

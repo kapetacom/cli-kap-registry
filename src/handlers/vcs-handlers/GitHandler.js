@@ -121,8 +121,23 @@ class GitHandler {
     }
 
     async getBranch(directory) {
-        const status = await Git(directory).status();
-        return status.current;
+        const [remote, branch] = await this.getRemote(directory);
+
+        const git = Git(directory);
+
+        const remoteBase = `refs/remotes/${remote}`;
+
+        //Returns something like "refs/remotes/origin/master"
+        const result = await git.raw(['symbolic-ref', `${remoteBase}/HEAD`]);
+
+        const defaultBranch = result ? result.trim().split(remoteBase + '/')[1] : 'master';
+
+        console.log('defaultBranch === branch', defaultBranch === branch, defaultBranch, branch);
+
+        return {
+            branch,
+            main: defaultBranch === branch
+        };
     }
 
     async getLatestCommit(directory) {
@@ -147,7 +162,7 @@ class GitHandler {
         const topLevelDir = await git.revparse(['--show-toplevel']);
         let relativePath;
         if (directory.indexOf(topLevelDir) === 0) {
-            relativePath = directory.substr(topLevelDir.length + 1);
+            relativePath = directory.substring(topLevelDir.length + 1);
         }
 
         if (!relativePath || relativePath === '/') {
@@ -178,11 +193,11 @@ class GitHandler {
         const status = await git.status();
 
         if (status.tracking) {
-            return status.tracking.trim().split(/\//);
+            return status.tracking.trim().split(/\//).map(t => t.trim());
         }
 
         const remotes = await git.getRemotes(true);
-        const branch = status.current;
+        const branch = status.current.trim();
 
         if (remotes.length === 0) {
             throw new Error('No remotes defined for git repository.');
@@ -190,7 +205,7 @@ class GitHandler {
 
         if (remotes.length === 1) {
             return [
-                remotes[0].name,
+                remotes[0].name.trim(),
                 branch
             ];
         }
@@ -201,7 +216,7 @@ class GitHandler {
             if (originRemote) {
                 //We check for origin first - that's the most commonly used name for remotes
                 return [
-                    originRemote.name,
+                    originRemote.name.trim(),
                     branch
                 ];
             }
@@ -216,7 +231,7 @@ class GitHandler {
             if (cloudRemote) {
                 //We check for origin first - that's the most commonly used name for remotes
                 return [
-                    originRemote.name,
+                    originRemote.name.trim(),
                     branch
                 ];
             }

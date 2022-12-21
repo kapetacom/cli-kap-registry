@@ -88,9 +88,9 @@ interface VCSHandler {
 
     getLatestCommit(directory: string): Promise<string>
 
-    getBranch(directory: string): Promise<string>
+    getBranch(directory: string): Promise<{branch:string,main:boolean}>
 
-    getRemote(directory: string): Promise<string>
+    getRemote(directory: string): Promise<string[]>
 
     getCheckoutInfo(directory: string): Promise<any>
 
