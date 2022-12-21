@@ -374,7 +374,6 @@ module.exports = async function push(file, cmdObj) {
 
     try {
         await operation.perform();
-        cli.end();
     } catch (err) {
         cli.error('Push failed: %s', err.message);
 

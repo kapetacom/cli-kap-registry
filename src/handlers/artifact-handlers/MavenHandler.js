@@ -154,7 +154,7 @@ class MavenHandler {
     }
 
     async push(name, version, commit) {
-        const command = `mvn --settings "${this._configFile}" deploy -B -DaltDeploymentRepository=${MAVEN_SERVER_ID}::default::${this._hostInfo.href}`;
+        const command = `mvn --settings "${this._configFile}" deploy -B -DskipTests=1 -DaltDeploymentRepository=${MAVEN_SERVER_ID}::default::${this._hostInfo.href}`;
 
         const [groupId, artifactId] = name.split(/\//);
 
@@ -166,9 +166,13 @@ class MavenHandler {
 
         const project = pom.elements[0];
 
-        project.elements.find(e => e.name === 'groupId').elements[0].text = groupId;
-        project.elements.find(e => e.name === 'artifactId').elements[0].text = artifactId;
-        project.elements.find(e => e.name === 'version').elements[0].text = version;
+        const setValue = (name, value) => {
+            project.elements.find(e => e.name === name).elements[0].text = value;
+        };
+
+        setValue('groupId', groupId);
+        setValue('artifactId', artifactId);
+        setValue('version', version);
 
         const newPom = XmlJS.js2xml(pom, {spaces: 4});
 
@@ -176,7 +180,7 @@ class MavenHandler {
 
         try {
 
-            await this._cli.progress('Deploying maven package',
+            await this._cli.progress(`Deploying maven package: ${groupId}:${artifactId}[${version}]`,
                 () => this._cli.run(command, this._directory));
         } finally {
             this._restorePOMBackup();
@@ -198,11 +202,11 @@ class MavenHandler {
     }
 
     async build() {
-        return this._cli.progress('Building maven package', () => this._cli.run('mvn package -B', this._directory));
+        return this._cli.progress('Building maven package', () => this._cli.run('mvn -U clean package -B', this._directory));
     }
 
     async test() {
-        return this._cli.progress('Testing maven package', () => this._cli.run('mvn test -B', this._directory));
+        return this._cli.progress('Testing maven package', () => this._cli.run('mvn -U test -B', this._directory));
     }
 }
 

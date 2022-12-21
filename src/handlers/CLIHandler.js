@@ -24,6 +24,7 @@ class CLIHandler {
     }
 
     async run(command, directory) {
+        this.info(`Running command "${command}"`);
         const child = spawn(command, {
             cwd: directory ? directory : process.cwd(),
             detached: true,
