@@ -1,4 +1,3 @@
-const Docker = require('dockerode');
 const DockerfileParser = require('docker-file-parser');
 const FS = require('fs');
 const Path = require('path');
@@ -6,29 +5,62 @@ const glob = require('glob');
 const tar = require('tar-fs');
 const zlib = require('zlib');
 const crypto = require('crypto');
+const os = require("os");
+
 
 const {promisifyStream} = require('../utils/PromiseUtils');
-
-const createDockerDataHandler = function(lineHandler) {
-    return  (data) => {
-        const chunks = data.toString().trim().split(/\n/g);
-        chunks.forEach((chunk) => {
-            const info = JSON.parse(chunk);
-            lineHandler(info);
-        });
-
-    }
-};
 
 class DockerService {
 
     /**
      *
      * @param {CLIHandler} cli
+     * @param {UrlWithStringQuery} hostInfo
+     * @param {string} accessToken
      */
-    constructor(cli) {
+    constructor(cli, hostInfo, accessToken) {
         this._cli = cli;
-        this._docker = new Docker();
+        this._hostInfo = hostInfo;
+        this._accessToken = accessToken;
+        this._configDir = null;
+        this._configFile = null;
+
+        this._ensureConfig();
+    }
+
+    _ensureConfig() {
+        const auth = Buffer.from(`blockware:${this._accessToken}`).toString('base64');
+
+        this._configDir = `${os.homedir()}/.docker`;
+        this._configFile = `${this._configDir}/config.json`;
+        let config;
+        if (FS.existsSync(this._configFile)) {
+            config = JSON.parse(FS.readFileSync(this._configFile).toString());
+            this._cli.info(`Ensuring docker configuration in ${this._configFile}`);
+        } else {
+            this._configDir = `${os.tmpdir()}/.docker`;
+            this._configFile = `${this._configDir}/config.json`;
+            FS.mkdirSync(this._configDir);
+            this._cli.info(`Writing temporary docker configuration to ${this._configFile}`);
+            config = {};
+        }
+
+        if (!config.auths) {
+            config.auths = {};
+        }
+
+        if (!config.credHelpers) {
+            config.credHelpers = {};
+        }
+
+        config.auths[this._hostInfo.host] = {auth};
+        config.credHelpers[this._hostInfo.host] = '';
+
+        FS.writeFileSync(this._configFile, JSON.stringify(config, null, 2));
+    }
+
+    async ping() {
+        return this._cli.run('docker version');
     }
 
     async pull(image) {
@@ -37,15 +69,7 @@ class DockerService {
             tag = 'latest';
         }
 
-        await this._docker.createImage({}, {
-            fromImage: imageName,
-            tag: tag
-        }).then(stream => promisifyStream(stream, createDockerDataHandler((data) => {
-            if (data.status &&
-                data.status.trim()) {
-                this._cli.debug(data.status.trim());
-            }
-        })));
+        return this._cli.run(`docker --config ${this._configDir} pull ${imageName}:${tag}`);
     }
 
     _pack(directory) {
@@ -79,17 +103,7 @@ class DockerService {
      * @returns {Promise<string>}
      */
     async build(directory, imageTags) {
-
-        const stream = this._pack(directory);
-
-        const buildStream = await this._docker.buildImage(stream, {t: imageTags});
-
-        await promisifyStream(buildStream, createDockerDataHandler((data) => {
-            if (data.stream &&
-                data.stream.trim()) {
-                this._cli.debug(data.stream.trim());
-            }
-        }));
+        await this._cli.run(`docker build ${imageTags.map(tag => `-t ${tag}`)} .`, directory);
     }
 
     /**
@@ -101,22 +115,8 @@ class DockerService {
 
         for(let i = 0 ; i < tags.length; i++) {
             const fullTag = tags[i];
-            let [imageName,tag] = DockerService.splitName(fullTag);
-
-            const image = this._docker.getImage(imageName);
             await this._cli.progress("Pushing docker image: " + fullTag, async() => {
-                const stream = await image.push({tag});
-                await promisifyStream(stream, createDockerDataHandler((data) => {
-                    if (!data.status) {
-                        return;
-                    }
-
-                    if (!data.id) {
-                        this._cli.debug(data.status.trim());
-                        return;
-                    }
-                    this._cli.debug(data.id, data.status.trim(), data.progressDetail && data.progressDetail.progress  ? data.progressDetail.progress : '');
-                }));
+                await this._cli.run(`docker --config ${this._configDir} push ${fullTag}`);
             });
         }
     }
@@ -149,46 +149,9 @@ class DockerService {
      * @returns {Promise<void>}
      */
     async tag(imageName, tags) {
-        const image = this._docker.getImage(imageName);
-
         for(let i = 0; i < tags.length; i++) {
             const fullTag = tags[i];
-            const [repo, tag] = DockerService.splitName(fullTag);
-            await image.tag({
-                repo,
-                tag
-            });
-        }
-    }
-
-    /**
-     *
-     * @param {string} image
-     * @param {string[]} command
-     * @returns {Promise<void>}
-     */
-    async execute(image, command) {
-        const dockerContainer = await this._docker.createContainer({
-            Tty: true,
-            Image: image,
-            Cmd: command
-        });
-
-        const stream = await dockerContainer.attach({
-            stream: true,
-            stdout: true,
-            stderr: true
-        });
-
-        await dockerContainer.start();
-        await promisifyStream(stream, (line) => {
-            this._cli.debug(line);
-        });
-
-        const inspect = await dockerContainer.inspect();
-        if (inspect.State &&
-            inspect.State.ExitCode !== 0) {
-            throw new Error('Container execution failed');
+            await this._cli.run(`docker tag ${imageName} ${fullTag}`);
         }
     }
 

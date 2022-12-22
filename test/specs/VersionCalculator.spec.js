@@ -174,16 +174,16 @@ describe('VersionCalculator', () => {
 
             expect(calculator.compareMethods(
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 },
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 }
             )).toBe(VersionCalculator.NONE);
 
             expect(calculator.compareMethods(
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 },
                 {
 
@@ -195,26 +195,26 @@ describe('VersionCalculator', () => {
 
                 },
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 }
             )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareMethods(
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 },
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'number'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'number'} }}
                 }
             )).toBe(VersionCalculator.MAJOR);
 
             expect(calculator.compareMethods(
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }},
-                    saveUser: {path:'/user/{id}', method: 'POST', arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }},
+                    saveUser: {path:'/user/{id}', method: 'POST', arguments: {id: {type:'string'} }}
                 },
                 {
-                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
+                    getUser: {path:'/user/{id}',arguments: {id: {type:'string'} }}
                 }
             )).toBe(VersionCalculator.MINOR);
 

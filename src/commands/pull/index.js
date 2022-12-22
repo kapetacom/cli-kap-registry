@@ -1,9 +1,8 @@
-const YAML = require('yaml');
 const Config = require('../../config');
 const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
 const CLIHandler = require('../../handlers/CLIHandler');
+const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const RegistryService = require('../../services/RegistryService');
-const DockerService = require('../../services/DockerService');
 
 /**
  *
@@ -11,7 +10,7 @@ const DockerService = require('../../services/DockerService');
  * @param {CommandOptions} cmdObj
  * @returns {Promise<void>}
  */
-module.exports = async function pullImage(uri, cmdObj) {
+module.exports = async function pull(uri, cmdObj) {
     const blockInfo = parseBlockwareUri(uri);
 
     const registryService = new RegistryService(
@@ -24,24 +23,24 @@ module.exports = async function pullImage(uri, cmdObj) {
     cli.start('Pull image');
 
     try {
-
-        const dockerService = new DockerService(cli);
-
         const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
 
         if (!registration) {
             throw new Error('Registration not found: ' + uri);
         }
 
-        if (!registration.docker ||
-            !registration.docker.image ||
-            !registration.docker.image.primary) {
-            throw new Error('Registration is missing docker information: ' + uri);
+        if (!registration.artifact?.type) {
+            throw new Error('Registration is missing artifact information: ' + uri);
         }
 
-        await cli.progress(`Pulling docker image: ${registration.docker.image.primary}`, async () => {
-            await dockerService.pull(registration.docker.image.primary);
-        });
+        const handler = ArtifactHandler.getArtifactHandler(cli, registration.artifact.type);
+
+        if (!handler) {
+            throw new Error('Artifact type not found: ' + registration.artifact.type);
+        }
+
+        await handler.pull(registration.artifact.details);
+
     } finally {
         cli.end();
     }
