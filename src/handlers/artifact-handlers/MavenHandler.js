@@ -203,11 +203,11 @@ class MavenHandler {
      * @param {string} target
      * @returns {Promise<never>}
      */
-    pull(details, target) {
-        const artifact = `${details.groupId}:${details.artifactId}:${details.version}:jar`;
+    async pull(details, target) {
+        const artifact = `${details.groupId}:${details.artifactId}:${details.version}`;
         const repo = `${MAVEN_SERVER_ID}::default::${details.registry}`;
-        const command = `mvn --settings "${this._configFile}" dependency:copy -B -DoutputDirectory=${target} -Dartifact=${artifact} -DremoteRepositories=${repo}`;
-        return this._cli.progress('Pulling maven package', () => this._cli.run(command, this._directory));
+        const dependencyGetCmd = `mvn -U --settings "${this._configFile}" dependency:get -B -Ddest=${target} -Dartifact=${artifact} -DremoteRepositories=${repo}`;
+        await this._cli.progress('Pulling maven package', () => this._cli.run(dependencyGetCmd, this._directory));
     }
 
     async build() {
