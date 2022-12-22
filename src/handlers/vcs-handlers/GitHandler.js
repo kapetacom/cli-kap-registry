@@ -243,7 +243,7 @@ class GitHandler {
 
     /**
      *
-     * @param {GitCheckoutInfo} checkoutInfo
+     * @param {GitDetails} checkoutInfo
      * @param {string} commitId
      * @param {string} targetFolder
      * @returns {Promise<void>}

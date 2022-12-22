@@ -51,7 +51,13 @@ class RegistryService {
      * @returns {Promise<AssetVersion>}
      */
     async getVersion(name, version) {
-        return this._request('GET', `/${encodeURIComponent(this.handle)}/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
+        let handle = this.handle;
+
+        if (name.indexOf('/') > -1) {
+            [handle, name] = name.split('/');
+        }
+
+        return this._request('GET', `/${encodeURIComponent(handle)}/${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
     }
 
     /**

@@ -30,7 +30,7 @@ exports.getVCSHandler = async (cli, directory) => {
 exports.getVCSHandlerByType = async (cli, type) => {
     for(let i = 0 ; i < VCS_HANDLERS.length; i++) {
         const handler = VCS_HANDLERS[i];
-        if (await handler.getType().toLowerCase() === type.toLowerCase()) {
+        if (handler.getType().toLowerCase() === type.toLowerCase()) {
             return new handler(cli);
         }
     }

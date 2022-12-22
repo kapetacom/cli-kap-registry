@@ -36,7 +36,7 @@ exports.getArtifactHandler = async (cli, directory) => {
  * Get artifact repository handler for type
  * @param {CLIHandler} cli
  * @param {string} type
- * @returns {VCSHandler|null}
+ * @returns {ArtifactHandler|null}
  */
 exports.getArtifactHandlerByType = async (cli, type) => {
     for(let i = 0 ; i < ARTIFACT_HANDLERS.length; i++) {

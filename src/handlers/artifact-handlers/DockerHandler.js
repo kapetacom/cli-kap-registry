@@ -200,20 +200,21 @@ class DockerHandler {
     /**
      *
      * @param {DockerDetails} details
+     * @param {string} target
      * @returns {Promise<void>}
      */
-    async pull(details) {
+    async pull(details, target) {
         await this._cli.progress(`Pulling docker image: ${details.primary}`, async () => {
             await this._dockerService.pull(details.primary);
         });
     }
 
     async build() {
-        //Meant as a pre-test thing
+        //Meant as a pre-test thing - Not applicable
     }
 
     async test() {
-        //Meant as a pre-test thing
+        //Meant as a pre-deploy thing - Not applicable
     }
 }
 

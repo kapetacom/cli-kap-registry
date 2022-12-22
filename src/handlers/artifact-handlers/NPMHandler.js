@@ -102,13 +102,19 @@ class NPMHandler {
                 registry: this._hostInfo.href
             }
         };
-
     }
 
-    async pull(details) {
+    /**
+     *
+     * @param {NPMDetails} details
+     * @param {string} target
+     * @returns {Promise<void>}
+     */
+    async pull(details, target) {
         await this.ensureCredentials();
 
-        return Promise.reject(new Error('Not Implemented'));
+        await this._cli.progress(`Pulling NPM package: ${details.name}:${details.version}`,
+            () => this._cli.run(`npm pack --registry ${details.registry} --pack-destination=${target} @${details.name}@${details.version}`, this._directory));
     }
 
     _getPackageInfo() {

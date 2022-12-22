@@ -2,9 +2,16 @@ interface CommandOptions {
     registry: string
 }
 
+interface PullCommandOptions {
+    registry: string
+    nonInteractive: boolean
+    target:string
+}
+
 interface CloneCommandOptions {
     registry: string
     target: string
+    nonInteractive: boolean
 }
 
 interface PushCommandOptions {
@@ -44,12 +51,23 @@ interface YAMLDetails {
     version:string
 }
 
+
+interface NPMDetails {
+    name:string
+    version:string
+    registry:string
+}
+
 interface ArtifactHandlerFactory {
     create(cli:CLIHandler, directory:string):ArtifactHandler;
 
     getType(): string
 
     isSupported(directory: string): Promise<boolean>
+}
+
+interface RegistryService {
+
 }
 
 interface ArtifactHandler<T extends any = any> {
@@ -62,7 +80,7 @@ interface ArtifactHandler<T extends any = any> {
 
     push(name:string, version:string, commit:string): Promise<Artifact<T>>
 
-    pull(details:T):Promise<void>
+    pull(details:T, target:string, registryService:RegistryService):Promise<void>
 
     build():Promise<void>;
 
