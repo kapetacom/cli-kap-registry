@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const FS = require('fs');
 const Path = require('path');
 const Config = require("../../config");
+const YAML = require('yaml');
 /**
  * @class
  * @implements {ArtifactHandler}
@@ -57,18 +58,29 @@ class YAMLHandler {
     /**
      *
      * @param {YAMLDetails} details
-     * @returns {Promise<unknown>}
+     * @param {string} target
+     * @param {RegistryService} registryService
+     * @returns {Promise<void>}
      */
-    pull(details) {
-        return Promise.reject(new Error('Not implemented'));
+    async pull(details, target, registryService) {
+        const version = await this._cli.progress(`Downloading YAML for ${details.name}:${details.version}`,
+            () => registryService.getVersion(details.name, details.version)
+        );
+
+        const filename = `${details.name.replace(/\//g,'-')}-${details.version}.yaml`;
+        const dest = Path.join(target, filename);
+
+        FS.writeFileSync(dest, YAML.stringify(version.content));
+
+        this._cli.info(`Wrote YAML to ${dest}`);
     }
 
     async build() {
-        //Meant as a pre-test thing
+        //Meant as a pre-test thing - Not applicable
     }
 
     async test() {
-        //Meant as a pre-test thing
+        //Meant as a pre-deploy thing - Not applicable
     }
 }
 

@@ -22,7 +22,7 @@ module.exports = async function clone(uri, cmdObj) {
         blockInfo.handle
     );
 
-    const cli = new CLIHandler(true);
+    const cli = new CLIHandler(!cmdObj.nonInteractive);
 
     const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
 
@@ -43,11 +43,9 @@ module.exports = async function clone(uri, cmdObj) {
 
     try {
 
-        const cli = new CLIHandler(true);
-
-        cli.start('Clone repository');
-
         const target = cmdObj.target || Path.join(process.cwd(), registration.content.metadata.name);
+
+        cli.start(`Clone repository to ${target}`);
         await cli.progress('Preparing for repository clone', async () => {
             const targetParent = Path.resolve(target, '../');
 
@@ -59,7 +57,7 @@ module.exports = async function clone(uri, cmdObj) {
             }
         });
 
-        await handler.clone(registration.repository.checkout, registration.repository.commit, target);
+        await handler.clone(registration.repository.details, registration.repository.commit, target);
     } catch (e) {
         cli.error(e.message);
     } finally {

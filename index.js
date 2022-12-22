@@ -34,12 +34,15 @@ program
     .command('clone <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Clone to this path. Defaults to current working dir + organisation + name')
+    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .description('Clone source code of block from registry - e.g. clone "my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
 
 program
     .command('pull <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
+    .option('-t, --target <path>', 'Pull to this path- Defaults to current working dir')
+    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .description('Pull docker image for block from registry - e.g. pull "my-company/my-block"')
     .action(catchError(require('./src/commands/pull')));
 
