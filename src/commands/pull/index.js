@@ -21,7 +21,7 @@ module.exports = async function pull(uri, cmdObj) {
     const cli = new CLIHandler(!cmdObj.nonInteractive);
 
     cli.start('Pull image');
-    
+
     const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
 
     if (!registration) {

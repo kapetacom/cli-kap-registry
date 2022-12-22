@@ -48,7 +48,7 @@ class DockerHandler {
 
 
     async verify() {
-        return this._dockerService.ping();
+        return this._dockerService.verify();
     }
 
     /**

@@ -59,7 +59,7 @@ class DockerService {
         FS.writeFileSync(this._configFile, JSON.stringify(config, null, 2));
     }
 
-    async ping() {
+    async verify() {
         return this._cli.run('docker version');
     }
 
