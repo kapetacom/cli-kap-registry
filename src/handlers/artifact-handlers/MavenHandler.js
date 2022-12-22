@@ -197,8 +197,17 @@ class MavenHandler {
         }
     }
 
-    pull(details) {
-        return Promise.reject(new Error('Not Implemented'));
+    /**
+     *
+     * @param {MavenDetails} details
+     * @param {string} target
+     * @returns {Promise<never>}
+     */
+    pull(details, target) {
+        const artifact = `${details.groupId}:${details.artifactId}:${details.version}:jar`;
+        const repo = `${MAVEN_SERVER_ID}::default::${details.registry}`;
+        const command = `mvn --settings "${this._configFile}" dependency:copy -B -DoutputDirectory=${target} -Dartifact=${artifact} -DremoteRepositories=${repo}`;
+        return this._cli.progress('Pulling maven package', () => this._cli.run(command, this._directory));
     }
 
     async build() {
