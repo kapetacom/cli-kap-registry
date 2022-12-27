@@ -3,6 +3,9 @@ const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
 const CLIHandler = require('../../handlers/CLIHandler');
 const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const RegistryService = require('../../services/RegistryService');
+const YAML = require('yaml');
+const Path = require('path');
+const FS = require('fs');
 
 /**
  *
@@ -32,7 +35,7 @@ module.exports = async function pull(uri, cmdObj) {
         throw new Error('Registration is missing artifact information: ' + uri);
     }
 
-    const handler = await ArtifactHandler.getArtifactHandlerByType(cli, registration.artifact.type);
+    const handler = ArtifactHandler.getArtifactHandlerByType(cli, registration.artifact.type);
 
     if (!handler) {
         throw new Error('Artifact type not found: ' + registration.artifact.type);
@@ -44,5 +47,10 @@ module.exports = async function pull(uri, cmdObj) {
 
     await handler.pull(registration.artifact.details, target, registryService);
 
+    //Write the blockware.yml - it's usually included in the package but might contain multiple
+    const targetYML = Path.join(target, 'blockware.yml');
+    FS.writeFileSync(targetYML, YAML.stringify(registration.content));
+
+    cli.info(`Wrote blockware.yml to ${targetYML}`);
 
 };

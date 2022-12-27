@@ -38,7 +38,7 @@ exports.getArtifactHandler = async (cli, directory) => {
  * @param {string} type
  * @returns {ArtifactHandler|null}
  */
-exports.getArtifactHandlerByType = async (cli, type) => {
+exports.getArtifactHandlerByType = (cli, type) => {
     for(let i = 0 ; i < ARTIFACT_HANDLERS.length; i++) {
         const handler = ARTIFACT_HANDLERS[i];
         if (handler.getType().toLowerCase() === type.toLowerCase()) {

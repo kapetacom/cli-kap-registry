@@ -1,7 +1,6 @@
 const FS = require('node:fs');
 const URL = require("node:url");
 const Path = require('node:path');
-const crypto = require("node:crypto");
 const XmlJS = require('xml-js');
 const Config = require("../../config");
 const { hashElement } = require('folder-hash');

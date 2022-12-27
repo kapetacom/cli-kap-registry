@@ -15,6 +15,7 @@ function catchError(callback) {
             return await callback.apply(this, arguments);
         } catch(err) {
             console.error('[ERROR] ' + err.message);
+            process.exit(-1);
         }
     }
 }
