@@ -143,6 +143,8 @@ class NPMHandler {
     }
 
     async build() {
+        process.env.NODE_ENV = 'production';
+
         await this._cli.progress('Installing NPM package',
             () => this._cli.run('npm install', this._directory)
         );
@@ -157,6 +159,8 @@ class NPMHandler {
     }
 
     async test() {
+        process.env.NODE_ENV = 'production';
+
         let packageInfo = this._getPackageInfo();
         if ('test' in packageInfo.scripts) {
             return this._cli.progress('Testing NPM package', () => this._cli.run('npm run test', this._directory));
