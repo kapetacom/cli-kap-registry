@@ -102,6 +102,8 @@ interface VCSHandler {
 
     push(directory: string, includeTags: boolean): Promise<void>
 
+    pushTags(directory: string): Promise<void>
+
     tag(directory: string, tag: string): Promise<boolean>
 
     getLatestCommit(directory: string): Promise<string>

@@ -25,32 +25,38 @@ module.exports = async function pull(uri, cmdObj) {
 
     cli.start('Pull image');
 
-    const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
+    const assetVersion = await registryService.getVersion(blockInfo.name, blockInfo.version);
 
-    if (!registration) {
+    if (!assetVersion) {
         throw new Error('Registration not found: ' + uri);
     }
 
-    if (!registration.artifact?.type) {
+    if (!assetVersion.artifact?.type) {
         throw new Error('Registration is missing artifact information: ' + uri);
     }
 
-    const handler = ArtifactHandler.getArtifactHandlerByType(cli, registration.artifact.type);
+    const handler = ArtifactHandler.getArtifactHandlerByType(cli, assetVersion.artifact.type);
 
     if (!handler) {
-        throw new Error('Artifact type not found: ' + registration.artifact.type);
+        throw new Error('Artifact type not found: ' + assetVersion.artifact.type);
     }
 
     const target = cmdObj.target ? cmdObj.target : process.cwd();
 
     cli.info(`Pulling artifact using ${handler.getName()}`);
 
-    await handler.pull(registration.artifact.details, target, registryService);
+    await handler.pull(assetVersion.artifact.details, target, registryService);
 
     //Write the blockware.yml - it's usually included in the package but might contain multiple
     const targetYML = Path.join(target, 'blockware.yml');
-    FS.writeFileSync(targetYML, YAML.stringify(registration.content));
+    FS.writeFileSync(targetYML, YAML.stringify(assetVersion.content));
 
-    cli.info(`Wrote blockware.yml to ${targetYML}`);
+    cli.info(`Wrote block information to ${targetYML}`);
+
+    //Write version information to file
+    const versionYML = Path.join(target, 'blockware.version.yml');
+    FS.writeFileSync(versionYML, YAML.stringify(assetVersion));
+
+    cli.info(`Wrote version information to ${versionYML}`);
 
 };

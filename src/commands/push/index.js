@@ -311,6 +311,12 @@ class PushOperation {
              */
             let repository;
 
+            /**
+             * Tags for pushing when successful
+             * @type {string[]}
+             */
+            let vcsTags = [];
+
             if (vcsHandler) {
                 const {branch, main} = await vcsHandler.getBranch(this._directory);
                 repository = {
@@ -322,6 +328,17 @@ class PushOperation {
                 };
                 commitId = repository.commit;
                 this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > [${reservation.versions.map(v => v.version).join(', ')}]`);
+                if (reservation.versions.length > 1) {
+                    for(let i = 0; i < reservation.versions.length; i++) {
+                        const version = reservation.versions[i].version;
+                        const assetDefinition = reservation.versions[i].content;
+                        //Multiple assets in this repo - use separate tags for each
+                        vcsTags.push(`v${version}-${assetDefinition.metadata.name}`);
+                    }
+                } else if (reservation.versions.length === 1) {
+                    //Only 1 asset in this repo - use simple version
+                    vcsTags.push(`v${reservation.versions[0].version}`);
+                }
             }
 
             const checksum = await artifactHandler.calculateChecksum();
@@ -350,6 +367,19 @@ class PushOperation {
             }
 
             await this._cli.progress('Committing version', async () => this.commitReservation(reservation, assetVersions));
+
+            if (vcsHandler && vcsTags.length > 0) {
+                await this._cli.progress('Tagging commit', async () => {
+                    for (let i = 0; i < vcsTags.length; i++) {
+                        await vcsHandler.tag(this._directory, vcsTags[i]);
+                    }
+
+                    await vcsHandler.pushTags(this._directory);
+                });
+            }
+
+            await this._cli.check(`Done`, true);
+
         } catch (e) {
             await this._cli.progress('Aborting version', async () => this.abortReservation(reservation));
             throw e;
