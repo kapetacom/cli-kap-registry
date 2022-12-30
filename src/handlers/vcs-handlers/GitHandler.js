@@ -63,7 +63,13 @@ class GitHandler {
         if (includeTags) {
             await git.pushTags(remote);
         }
+    }
 
+    async pushTags(directory) {
+        const [remote] = await this.getRemote(directory);
+        const git = Git(directory);
+        this._cli.debug('Pushing tags to git remote: %s', remote);
+        await git.pushTags(remote);
     }
 
     async getTagsForLatest(directory) {
@@ -89,6 +95,8 @@ class GitHandler {
             //Tag already exists - ignore
             return false;
         }
+
+        this._cli.debug('Tagging latest commit: %s', tag);
 
         await git.addTag(tag);
 
@@ -131,8 +139,6 @@ class GitHandler {
         const result = await git.raw(['symbolic-ref', `${remoteBase}/HEAD`]);
 
         const defaultBranch = result ? result.trim().split(remoteBase + '/')[1] : 'master';
-
-        console.log('defaultBranch === branch', defaultBranch === branch, defaultBranch, branch);
 
         return {
             branch,

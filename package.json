@@ -21,8 +21,8 @@
     "test": "jest test/specs"
   },
   "dependencies": {
-    "@blockware/blockctl-command": "0.0.2",
-    "@blockware/local-cluster-config": "^0.0.7",
+    "@blockware/blockctl-command": "<2",
+    "@blockware/local-cluster-config": "<2",
     "blessed": "^0.1.81",
     "docker-file-parser": "^1.0.4",
     "folder-hash": "^4.0.2",

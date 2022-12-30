@@ -48,14 +48,22 @@ class NPMHandler {
         const result = await this._cli.progress('Calculating checksum', () => this._cli.run('npm pack --dryrun --json', this._directory));
         const packInfo = result.output ? JSON.parse(result.output) : null;
 
-        if (packInfo && packInfo.filename) {
-            FS.unlinkSync(packInfo.filename);
-        }
-
         if (packInfo &&
-            packInfo.length > 0 &&
-            packInfo[0].shasum) {
-            return packInfo[0].shasum;
+            packInfo.length > 0) {
+            //Delete tmp file
+            if (packInfo[0].filename) {
+                FS.unlinkSync(packInfo[0].filename
+                    .replace(/\//g, '-')
+                    .replace(/^@/,''));
+            }
+
+            if (packInfo[0].integrity) {
+                return packInfo[0].integrity;
+            }
+
+            if (packInfo[0].shasum) {
+                return packInfo[0].shasum;
+            }
         }
 
         return Promise.reject(new Error('Failed to get checksum using npm pack'));
@@ -65,7 +73,17 @@ class NPMHandler {
         const key = `//${this._hostInfo.host}/:_authToken`
         const value = new Authentication().getToken();
         return this._cli.progress('Configuring NPM access',
-            () => this._cli.run(`npm config set "${key}"="${value}"`));
+            () => this._cli.run(`npm config --location user set "${key}"="${value}"`));
+    }
+
+    async versionExists(packageName, version) {
+        try {
+            const result = await this._cli.run(`npm view --registry ${this._hostInfo.href} ${packageName}@${version} version`);
+            return result.output.trim() === version;
+        } catch (e) {
+            //Ignore - OK if version doesnt exist
+            return false;
+        }
     }
 
     async push(name, version, commit) {
@@ -73,6 +91,16 @@ class NPMHandler {
 
         let packageInfo = this._getPackageInfo();
         const npmName = '@' + name;
+
+        await this._cli.progress('Checking NPM registry', async () => {
+            if (await this.versionExists(npmName, version)) {
+                throw new Error(`NPM version already exists [${npmName}:${version}] - can not be overwritten`);
+            } else {
+                this._cli.info('NPM registry did not contain version. Proceeding...');
+            }
+        })
+
+
         let changedPackage = false;
         try {
 
@@ -108,13 +136,15 @@ class NPMHandler {
      *
      * @param {NPMDetails} details
      * @param {string} target
+     * @param {RegistryService} registryService
      * @returns {Promise<void>}
      */
-    async pull(details, target) {
+    async pull(details, target, registryService) {
         await this.ensureCredentials();
 
         await this._cli.progress(`Pulling NPM package: ${details.name}:${details.version}`,
             () => this._cli.run(`npm pack --registry ${details.registry} --pack-destination=${target} @${details.name}@${details.version}`, this._directory));
+
     }
 
     _getPackageInfo() {
@@ -123,18 +153,28 @@ class NPMHandler {
     }
 
     makePackageBackup() {
-        const backupFile = Path.join(this._directory, 'package.json.original');
+        this.makeBackup('package.json');
+        this.makeBackup('package-lock.json');
+    }
+
+    makeBackup(file) {
+        const backupFile = Path.join(this._directory, file + '.original');
         if (FS.existsSync(backupFile)) {
             FS.unlinkSync(backupFile);
         }
-        FS.copyFileSync(Path.join(this._directory, 'package.json'), backupFile);
+        FS.copyFileSync(Path.join(this._directory, file), backupFile);
     }
 
     restorePackageBackup() {
-        const backupFile = Path.join(this._directory, 'package.json.original');
+        this.restoreBackup('package.json');
+        this.restoreBackup('package-lock.json');
+    }
+
+    restoreBackup(file) {
+        const backupFile = Path.join(this._directory, file + '.original');
         if (FS.existsSync(backupFile)) {
-            FS.unlinkSync(Path.join(this._directory, 'package.json'));
-            FS.renameSync(backupFile, Path.join(this._directory, 'package.json'));
+            FS.unlinkSync(Path.join(this._directory, file));
+            FS.renameSync(backupFile, Path.join(this._directory, file));
         }
     }
 
@@ -143,7 +183,7 @@ class NPMHandler {
     }
 
     async build() {
-        process.env.NODE_ENV = 'production';
+        process.env.NODE_ENV = 'development';
 
         await this._cli.progress('Installing NPM package',
             () => this._cli.run('npm install', this._directory)
@@ -159,7 +199,7 @@ class NPMHandler {
     }
 
     async test() {
-        process.env.NODE_ENV = 'production';
+        process.env.NODE_ENV = 'development';
 
         let packageInfo = this._getPackageInfo();
         if ('test' in packageInfo.scripts) {

@@ -201,9 +201,10 @@ class DockerHandler {
      *
      * @param {DockerDetails} details
      * @param {string} target
+     * @param {RegistryService} registryService
      * @returns {Promise<void>}
      */
-    async pull(details, target) {
+    async pull(details, target, registryService) {
         await this._cli.progress(`Pulling docker image: ${details.primary}`, async () => {
             await this._dockerService.pull(details.primary);
         });
