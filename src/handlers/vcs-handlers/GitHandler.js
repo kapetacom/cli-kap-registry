@@ -140,8 +140,6 @@ class GitHandler {
 
         const defaultBranch = result ? result.trim().split(remoteBase + '/')[1] : 'master';
 
-        console.log('defaultBranch === branch', defaultBranch === branch, defaultBranch, branch);
-
         return {
             branch,
             main: defaultBranch === branch
