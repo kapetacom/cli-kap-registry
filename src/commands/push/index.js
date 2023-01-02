@@ -269,6 +269,35 @@ class PushOperation {
         await this._registryService.abortReservation(reservation);
     }
 
+    getReadmeData() {
+        const paths = [
+            {
+                type: 'markdown',
+                path: Path.join(this._directory,'README.md'),
+            },
+            {
+                type: 'text',
+                path: Path.join(this._directory,'README.txt')
+            },
+            {
+                type: 'text',
+                path: Path.join(this._directory,'README')
+            }
+        ]
+
+        for(let i = 0; i < paths.length; i++) {
+            const pathInfo = paths[i];
+            if (FS.existsSync(pathInfo.path)) {
+                return {
+                    type: pathInfo.type,
+                    content: FS.readFileSync(pathInfo.path).toString()
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Calls each check and step in the order it's intended.
      *
@@ -345,6 +374,8 @@ class PushOperation {
 
             this._cli.info(`Calculated checksum for artifact: ${checksum}`);
 
+            const readme = this.getReadmeData();
+
             for (let i = 0; i < reservation.versions.length; i++) {
                 const reservedVersion = reservation.versions[i];
                 const name = reservedVersion.content.metadata.name;
@@ -359,6 +390,7 @@ class PushOperation {
                     version: reservedVersion.version,
                     content: reservedVersion.content,
                     checksum,
+                    readme,
                     repository,
                     artifact
                 }
