@@ -1,14 +1,13 @@
 const Path = require('path');
 const FS = require('fs');
 const YAML = require('yaml');
-
+const Installer = require('../install');
+const Linker = require('../link');
 const VCSHandler = require('../../handlers/VCSHandler');
 const ArtifactHandler = require('../../handlers/ArtifactHandler');
-const {promisifyChild} = require('../../utils/PromiseUtils');
 const CLIHandler = require('../../handlers/CLIHandler');
 const RegistryService = require('../../services/RegistryService');
 const Config = require('../../config');
-const {spawn} = require('child_process');
 
 class PushOperation {
 
@@ -301,7 +300,7 @@ class PushOperation {
     /**
      * Calls each check and step in the order it's intended.
      *
-     * @returns {Promise<void>}
+     * @returns {Promise<string[]>}
      */
     async perform() {
         const vcsHandler = await this.vcsHandler();
@@ -410,7 +409,10 @@ class PushOperation {
                 });
             }
 
-            await this._cli.check(`Done`, true);
+            await this._cli.check(`Push completed`, true);
+            return assetVersions.map(assetVersion => {
+                return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
+            })
 
         } catch (e) {
             await this._cli.progress('Aborting version', async () => this.abortReservation(reservation));
@@ -421,24 +423,37 @@ class PushOperation {
 
 /**
  *
- * @param {string} [file="blockware.yml"]
  * @param {PushCommandOptions} cmdObj
  * @returns {Promise<void>}
  */
-module.exports = async function push(file, cmdObj) {
+module.exports = async function push(cmdObj) {
+    const file = 'blockware.yml';
 
-    if (!file) {
-        file = 'blockware.yml';
-    }
-
-    const cli = new CLIHandler(!cmdObj.nonInteractive);
+    const cli = CLIHandler.get(!cmdObj.nonInteractive);
 
     cli.start(`Push ${file}`);
 
     const operation = new PushOperation(cli, file, cmdObj);
 
     try {
-        await operation.perform();
+
+        if (!cmdObj.skipLinking) {
+            await cli.progress('Linking local version', () => Linker());
+        }
+
+        const references = await operation.perform();
+
+        if (!cmdObj.skipInstall &&
+            references.length > 0) {
+            //We install assets once we've pushed them.
+            await cli.progress('Installing new versions', () => Installer(references, {
+                nonInteractive: cmdObj.nonInteractive,
+                registry: cmdObj.registry,
+                skipDependencies: true
+            }));
+        }
+
+
     } catch (err) {
         cli.error('Push failed: %s', err.message);
 

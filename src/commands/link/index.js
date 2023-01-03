@@ -3,23 +3,31 @@ const Path = require("node:path");
 const FS = require("node:fs");
 const FSExtra = require('fs-extra');
 const ClusterConfiguration = require('@blockware/local-cluster-config');
+const CLIHandler = require("../../handlers/CLIHandler");
 
 function makeSymLink(directory, versionTarget) {
+    if (FS.existsSync(versionTarget)) {
+        FSExtra.removeSync(versionTarget);
+    }
     FSExtra.mkdirpSync(Path.dirname(versionTarget));
     FSExtra.createSymlinkSync(directory, versionTarget);
 }
 
 /**
  *
- * @param {string} uri
- * @param {CommandOptions} cmdObj
+ * @param {string} [source=process.cwd()]
  * @returns {Promise<void>}
  */
-module.exports = async function link(uri, cmdObj) {
-    const blockwareYmlFilePath = Path.join(process.cwd(), 'blockware.yml');
+module.exports = async function link(source) {
+    if (!source) {
+        source = process.cwd();
+    }
+
+    const cli = CLIHandler.get(false);
+
+    const blockwareYmlFilePath = Path.join(source, 'blockware.yml');
     if (!FS.existsSync(blockwareYmlFilePath)) {
-        console.error('Current working directory is not a valid blockware asset. Expected a blockware.yml file');
-        return;
+        throw new Error('Current working directory is not a valid blockware asset. Expected a blockware.yml file');
     }
 
     const blockInfos = YAML.parseAllDocuments(FS.readFileSync(blockwareYmlFilePath).toString())
@@ -27,7 +35,10 @@ module.exports = async function link(uri, cmdObj) {
     blockInfos.forEach(blockInfo => {
         const [handle, name] = blockInfo.metadata.name.split('/');
         const target = ClusterConfiguration.getRepositoryAssetPath(handle, name, 'local');
-        makeSymLink(process.cwd(), target);
-        console.log('Linked asset %s:local\n\t%s --> %s', blockInfo.metadata.name, process.cwd(), target);
+        makeSymLink(source, target);
+        cli.info('Linked asset %s:local\n  %s --> %s', blockInfo.metadata.name, source, target);
     });
+
+    await cli.check('Linking done', true);
+
 };

@@ -9,7 +9,19 @@ function checkMark(ok) {
     return ok ? '✓' : '✖'
 }
 
+/**
+ * @type {CLIHandler}
+ */
+let singleton;
+
 class CLIHandler {
+
+    static get(interactive) {
+        if (!singleton) {
+            singleton = new CLIHandler(interactive);
+        }
+        return singleton;
+    }
     
     constructor(interactive) {
         this.nestingLevel = 0;
@@ -44,6 +56,10 @@ class CLIHandler {
     }
 
     start(title) {
+        if (this._screen) {
+            return;
+        }
+
         if (!this.interactive) {
             this.info(" !! Non interactive mode enabled !!\n");
             return;

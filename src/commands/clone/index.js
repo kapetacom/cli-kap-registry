@@ -1,11 +1,12 @@
 const Path = require('path');
-const mkdirp = require('mkdirp');
 const FS = require('fs');
+const FSExtra = require('fs-extra');
 const Config = require('../../config');
 const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
 const RegistryService = require('../../services/RegistryService');
 const VCSHandler = require('../../handlers/VCSHandler');
 const CLIHandler = require('../../handlers/CLIHandler');
+const Linker = require('../link');
 
 
 /**
@@ -22,7 +23,7 @@ module.exports = async function clone(uri, cmdObj) {
         blockInfo.handle
     );
 
-    const cli = new CLIHandler(!cmdObj.nonInteractive);
+    const cli = CLIHandler.get(!cmdObj.nonInteractive);
 
     const registration = await registryService.getVersion(blockInfo.name, blockInfo.version);
 
@@ -53,15 +54,23 @@ module.exports = async function clone(uri, cmdObj) {
                 cli.debug(`Verified parent folder exists: ${targetParent}`);
             } else {
                 cli.debug(`Creating parent folder: ${targetParent}`);
-                mkdirp.sync(targetParent);
+                FSExtra.mkdirpSync(targetParent);
             }
         });
 
-        await handler.clone(registration.repository.details, registration.repository.commit, target);
+        const checkoutId = (blockInfo.version === 'current') ?
+            registration.repository.branch :
+            registration.repository.commit
+
+        const clonedPath = await handler.clone(registration.repository.details, checkoutId, target);
+
+        await cli.check('Asset source code was cloned', true);
+
+        if (!cmdObj.skipLinking ||
+            blockInfo.version !== 'current') {
+            await cli.progress('Linking code to local repository', () => Linker(clonedPath));
+        }
     } catch (e) {
         cli.error(e.message);
-    } finally {
-        cli.end();
     }
-
 };

@@ -21,13 +21,15 @@ function catchError(callback) {
 
 
 program
-    .command('push [file]')
+    .command('push')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('-i, --ignore-working-directory', 'Skip check for changes in working directory')
     .option('-s, --skip-tests', 'Skip running tests')
     .option('-v, --verbose', 'Show additional output for debugging')
-    .description('push block to registry')
+    .option('--skip-install', 'Do not install artifacts locally after pushing')
+    .option('--skip-linking', 'Do not link current working directory to local repository')
+    .description('Push asset defined by blockware.yml in current working directory to registry.')
     .action(catchError(require('./src/commands/push')));
 
 program
@@ -35,6 +37,7 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Clone to this path. Defaults to current working dir + organisation + name')
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('--skip-linking', 'Do not link cloned repository to local repository')
     .description('Clone source code of asset from registry - e.g. clone "my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
 
@@ -72,6 +75,7 @@ program
     .alias('i')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('--skip-dependencies', 'Do not install dependencies')
     .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block"')
     .action(catchError(installer));
 

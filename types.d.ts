@@ -11,6 +11,7 @@ interface PullCommandOptions {
 interface InstallCommandOptions {
     registry?: string
     nonInteractive: boolean
+    skipDependencies: boolean
 }
 
 interface UninstallCommandOptions {
@@ -21,6 +22,7 @@ interface CloneCommandOptions {
     registry: string
     target: string
     nonInteractive: boolean
+    skipLinking: boolean
 }
 
 interface PushCommandOptions {
@@ -29,6 +31,8 @@ interface PushCommandOptions {
     nonInteractive: boolean
     skipTests: boolean
     verbose: boolean
+    skipInstall: boolean
+    skipLinking: boolean
 }
 
 interface GitDetails {
@@ -109,7 +113,7 @@ interface VCSHandler {
 
     commit(directory: string, message: string): Promise<string>
 
-    clone(checkoutInfo: any, commitId: string, targetFolder: string): Promise<void>
+    clone(checkoutInfo: any, checkoutId: string, targetFolder: string): Promise<string>
 
     push(directory: string, includeTags: boolean): Promise<void>
 
@@ -142,8 +146,14 @@ interface Repository<T extends any = any> {
     //The type of repository
     type: string
 
+    // True if branch is main branch
+    main: boolean
+
     // Commit is the commit hash of the repository from where the block was built.
     commit: string
+
+    // Branch - depends on the type of version control
+    branch: string
 
     // Type-specific details
     details: T

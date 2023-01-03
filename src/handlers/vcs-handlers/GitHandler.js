@@ -1,5 +1,7 @@
 const Git = require('simple-git/promise');
 const _ = require('lodash');
+const Path = require("path");
+const FS = require('fs');
 
 /**
  * @implements {VCSHandler}
@@ -250,22 +252,45 @@ class GitHandler {
     /**
      *
      * @param {GitDetails} checkoutInfo
-     * @param {string} commitId
+     * @param {string} checkoutId
      * @param {string} targetFolder
-     * @returns {Promise<void>}
+     * @returns {Promise<string>}
      */
-    async clone(checkoutInfo, commitId, targetFolder) {
+    async clone(checkoutInfo, checkoutId, targetFolder) {
         const git = Git();
 
-        await this._cli.progress(`Cloning GIT repository ${checkoutInfo.url} to ${targetFolder}`, async () => {
-            await git.clone(checkoutInfo.url, targetFolder);
-        });
+        const isRepo = FS.existsSync(targetFolder) && await Git(targetFolder).checkIsRepo();
+
+        if (isRepo) {
+            const directoryInfo = await this.getCheckoutInfo(targetFolder);
+            if (directoryInfo.url !== checkoutInfo.url) {
+                throw new Error(`Git repository already exists in ${targetFolder} and does not match ${checkoutInfo.url}`);
+            }
+
+            await this._cli.check(`Git repository existed and matched`, true);
+        } else {
+            if (checkoutInfo.path &&
+                checkoutInfo.path !== '.') {
+                await this._cli.progress(`Cloning sparse GIT repository ${checkoutInfo.url} to ${targetFolder}`, async () => {
+                    await git.clone(checkoutInfo.url, targetFolder, ['--no-checkout']);
+                    await Git(targetFolder).addConfig('core.sparsecheckout', 'true');
+                    FS.writeFileSync(Path.join(targetFolder,'.git/info/sparse-checkout'), checkoutInfo.path.substring(2));
+                });
+            } else {
+                await this._cli.progress(`Cloning GIT repository ${checkoutInfo.url} to ${targetFolder}`, async () => {
+                    await git.clone(checkoutInfo.url, targetFolder);
+                });
+            }
+
+        }
 
         const gitRepo = Git(targetFolder);
 
-        await this._cli.progress(`Checking out commit ${commitId}`, async () => {
-            await gitRepo.checkout(commitId);
+        await this._cli.progress(`Checking out ${checkoutId}`, async () => {
+            await gitRepo.checkout(checkoutId);
         });
+
+        return Path.join(targetFolder, checkoutInfo.path);
     }
 }
 

@@ -19,7 +19,7 @@ const attemptedToInstall = {};
  * @returns {Promise<void>}
  */
 module.exports = async function install(uris, cmdObj) {
-    const cli = new CLIHandler(!cmdObj.nonInteractive);
+    const cli = CLIHandler.get(!cmdObj.nonInteractive);
     cli.start('Installing assets');
 
     return doInstall(cli, uris, cmdObj)
@@ -107,11 +107,15 @@ async function doInstall(cli, uris, cmdObj) {
         });
     }
 
-    const dependencies = Object.keys(allDependencies).filter(d => !attemptedToInstall[d]);
-    if (dependencies.length === 0) {
-        cli.info('Done');
-        return;
+    if (!cmdObj.skipDependencies) {
+        const dependencies = Object.keys(allDependencies).filter(d => !attemptedToInstall[d]);
+        if (dependencies.length === 0) {
+            cli.info('Done');
+            return;
+        }
+
+        return cli.progress(`Installing ${dependencies.length} dependencies`, () => doInstall(cli, dependencies, cmdObj));
     }
 
-    return cli.progress(`Installing ${dependencies.length} dependencies`, () => doInstall(cli, dependencies, cmdObj));
+    await cli.check('Done installing', true);
 }
