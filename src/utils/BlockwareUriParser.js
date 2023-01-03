@@ -16,7 +16,7 @@ exports.parseBlockwareUri = function parseBlockwareUri(uri) {
     ] = rx.exec(uri);
 
     if (!version) {
-        version = 'latest';
+        version = 'current';
     }
 
     return {

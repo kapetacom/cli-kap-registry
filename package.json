@@ -1,7 +1,7 @@
 {
   "name": "@blockware/blockctl-command-registry",
   "command": "registry",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Push and pull from Blockware registry",
   "main": "index.js",
   "license": "MIT",
@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/blockwarecom/blockctl-command-registry#readme",
   "scripts": {
-    "test": "jest test/specs"
+    "test": "jest test/specs",
+    "postinstall": "node index.js init-defaults"
   },
   "dependencies": {
     "@blockware/blockctl-command": "<2",

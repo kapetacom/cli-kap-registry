@@ -5,6 +5,7 @@ const Config = require('./src/config');
 const ClusterConfiguration = require('@blockware/local-cluster-config');
 const command = new BlockwareCommand(packageData.command, packageData.version);
 const program = command.program();
+const installer = require('./src/commands/install')
 
 function catchError(callback) {
 
@@ -72,7 +73,7 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block"')
-    .action(catchError(require('./src/commands/install')));
+    .action(catchError(installer));
 
 program
     .command('uninstall [blockuri...]')
@@ -108,6 +109,16 @@ program
         Config.data.registry[type] = host;
         Config.save();
         console.log('Default host for %s set to %s', type, host);
+    }));
+
+program
+    .command('init-defaults')
+    .description('Installs default providers')
+    .action(catchError(async () => {
+        console.log('## Installing default providers');
+        const providers = require('./default-providers');
+        await installer(providers, {nonInteractive: true});
+
     }));
 
 command.start();

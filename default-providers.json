@@ -1,0 +1,13 @@
+[
+    "blockware/block-type-service",
+    "blockware/block-type-frontend",
+    "blockware/resource-type-rest-api",
+    "blockware/resource-type-rest-client",
+    "blockware/resource-type-web-page",
+    "blockware/resource-type-web-fragment",
+    "blockware/resource-type-mongodb",
+    "blockware/resource-type-postgresql",
+    "blockware/language-target-nodejs",
+    "blockware/language-target-react-ts",
+    "blockware/language-target-java-spring-boot"
+]

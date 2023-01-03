@@ -71,11 +71,21 @@ class NPMHandler {
         return Promise.reject(new Error('Failed to get checksum using npm pack'));
     }
 
-    async ensureCredentials() {
+    async ensureCredentials(scope, registryUrl) {
         const key = `//${this._hostInfo.host}/:_authToken`
         const value = new Authentication().getToken();
+        this.makeNpmBackup();
+        //Make sure this scope goes to the right registry
+
+        if (!registryUrl) {
+            registryUrl = this._hostInfo.href;
+        }
+
         return this._cli.progress('Configuring NPM access',
-            () => this._cli.run(`npm config --location user set "${key}"="${value}"`));
+            async () => {
+                await this._cli.run(`echo '@${scope}:registry=${registryUrl}' >> .npmrc`);
+                await this._cli.run(`npm config --location user set "${key}"="${value}"`);
+            });
     }
 
     async versionExists(packageName, version) {
@@ -89,22 +99,21 @@ class NPMHandler {
     }
 
     async push(name, version, commit) {
-        await this.ensureCredentials();
-
-        let packageInfo = this._getPackageInfo();
-        const npmName = '@' + name;
-
-        await this._cli.progress('Checking NPM registry', async () => {
-            if (await this.versionExists(npmName, version)) {
-                throw new Error(`NPM version already exists [${npmName}:${version}] - can not be overwritten`);
-            } else {
-                this._cli.info('NPM registry did not contain version. Proceeding...');
-            }
-        })
-
-
+        const [scope] = name.split('/');
+        await this.ensureCredentials(scope);
         let changedPackage = false;
+
         try {
+            let packageInfo = this._getPackageInfo();
+            const npmName = '@' + name;
+
+            await this._cli.progress('Checking NPM registry', async () => {
+                if (await this.versionExists(npmName, version)) {
+                    throw new Error(`NPM version already exists [${npmName}:${version}] - can not be overwritten`);
+                } else {
+                    this._cli.info('NPM registry did not contain version. Proceeding...');
+                }
+            })
 
             if (packageInfo.name !== npmName ||
                 packageInfo.version !== version) {
@@ -118,10 +127,13 @@ class NPMHandler {
             await this._cli.progress(`Pushing NPM package: ${npmName}:${version}`,
                 () => this._cli.run(`npm publish --registry ${this._hostInfo.href}`, this._directory));
 
+
         } finally {
             if (changedPackage) {
                 this.restorePackageBackup();
             }
+
+            this.restoreNpmBackup();
         }
 
         return {
@@ -142,19 +154,14 @@ class NPMHandler {
      * @returns {Promise<void>}
      */
     async pull(details, target, registryService) {
-        await this.ensureCredentials();
-
         const [scope] = details.name.split('/');
-        const npmRcFile = '.npmrc';
-        this.makeBackup(npmRcFile);
+        await this.ensureCredentials(scope, details.registry);
         try {
-            await this._cli.run(`echo '@${scope}:registry=${details.registry}' > ${npmRcFile}`);
             await this._cli.progress(`Pulling NPM package: ${details.name}:${details.version}`,
                 () => this._cli.run(`npm pack --registry ${details.registry} --pack-destination=${target} @${details.name}@${details.version}`, this._directory));
         } finally {
-            this.restoreBackup(npmRcFile);
+            this.restoreNpmBackup();
         }
-
     }
 
     /**
@@ -201,6 +208,10 @@ class NPMHandler {
         this.makeBackup('package-lock.json');
     }
 
+    makeNpmBackup() {
+        this.makeBackup('.npmrc');
+    }
+
     makeBackup(file) {
         const originalFile = Path.join(this._directory, file);
         const backupFile = Path.join(this._directory, file + '.original');
@@ -210,6 +221,10 @@ class NPMHandler {
         if (FS.existsSync(originalFile)) {
             FS.copyFileSync(originalFile, backupFile);
         }
+    }
+
+    restoreNpmBackup() {
+        this.restoreBackup('.npmrc');
     }
 
     restorePackageBackup() {

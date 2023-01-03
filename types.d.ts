@@ -9,7 +9,7 @@ interface PullCommandOptions {
 }
 
 interface InstallCommandOptions {
-    registry: string
+    registry?: string
     nonInteractive: boolean
 }
 
