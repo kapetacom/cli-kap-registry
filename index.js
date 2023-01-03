@@ -65,8 +65,8 @@ program
     });
 
 program
-    .command('link')
-    .description('Links current working directory as an asset with "local" version in local repository.')
+    .command('link [source]')
+    .description('Links source directory as an asset with "local" version in local repository. Defaults to current working directory.')
     .alias('ln')
     .action(catchError(require('./src/commands/link')));
 

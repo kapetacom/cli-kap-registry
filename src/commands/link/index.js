@@ -30,14 +30,19 @@ module.exports = async function link(source) {
         throw new Error('Current working directory is not a valid blockware asset. Expected a blockware.yml file');
     }
 
-    const blockInfos = YAML.parseAllDocuments(FS.readFileSync(blockwareYmlFilePath).toString())
+    const assetInfos = YAML.parseAllDocuments(FS.readFileSync(blockwareYmlFilePath).toString())
         .map(doc => doc.toJSON());
-    blockInfos.forEach(blockInfo => {
-        const [handle, name] = blockInfo.metadata.name.split('/');
-        const target = ClusterConfiguration.getRepositoryAssetPath(handle, name, 'local');
-        makeSymLink(source, target);
+
+    //If there are multiple assets in the blockware.yml - we still just create 1 symlink since both will
+    //otherwise be loaded twice
+    const assetInfo = assetInfos[0];
+    const [handle, name] = assetInfo.metadata.name.split('/');
+    const target = ClusterConfiguration.getRepositoryAssetPath(handle, name, 'local');
+    makeSymLink(source, target);
+
+    assetInfos.forEach(blockInfo => {
         cli.info('Linked asset %s:local\n  %s --> %s', blockInfo.metadata.name, source, target);
-    });
+    })
 
     await cli.check('Linking done', true);
 
