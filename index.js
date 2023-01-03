@@ -67,7 +67,7 @@ program
     .action(catchError(require('./src/commands/link')));
 
 program
-    .command('install <blockuri>')
+    .command('install [blockuri...]')
     .alias('i')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
@@ -75,7 +75,7 @@ program
     .action(catchError(require('./src/commands/install')));
 
 program
-    .command('uninstall <blockuri>')
+    .command('uninstall [blockuri...]')
     .alias('rm')
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .description('Removes asset from local repository - e.g. uninstall "my-company/my-block:1.0.0"')

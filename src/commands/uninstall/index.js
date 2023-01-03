@@ -6,26 +6,27 @@ const ClusterConfiguration = require('@blockware/local-cluster-config');
 
 /**
  *
- * @param {string} uri
+ * @param {string[]} uris
  * @param {UninstallCommandOptions} cmdObj
  * @returns {Promise<void>}
  */
-module.exports = async function uninstall(uri, cmdObj) {
-    const blockInfo = parseBlockwareUri(uri);
-
+module.exports = async function uninstall(uris, cmdObj) {
     const cli = new CLIHandler(!cmdObj.nonInteractive);
+    cli.start('Removing assets');
+    for (let i = 0; i < uris.length; i++) {
+        const uri = uris[i];
+        const blockInfo = parseBlockwareUri(uri);
+        const path = ClusterConfiguration.getRepositoryAssetPath(blockInfo.handle, blockInfo.name, blockInfo.version);
 
-    cli.start('Removing asset');
+        if (!FS.existsSync(path)) {
+            await cli.check(`Asset not installed: ${uri}`, false);
+            continue;
+        }
 
-    const path = ClusterConfiguration.getRepositoryAssetPath(blockInfo.handle, blockInfo.name, blockInfo.version);
+        //TODO: Remove all assets that depend on this asset
+        FSExtra.removeSync(path, {recursive: true});
 
-    if (!FS.existsSync(path)) {
-        throw new Error('Asset not installed: ' + uri);
+        await cli.check(`Removed asset: ${uri}`, true);
     }
-
-    //TODO: Remove all assets that depend on this asset
-    FSExtra.removeSync(path, {recursive: true});
-
-    await cli.check(`Removed asset ${uri}`, true);
 
 };

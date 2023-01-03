@@ -1,7 +1,7 @@
 {
   "name": "@blockware/blockctl-command-registry",
   "command": "registry",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Push and pull from Blockware registry",
   "main": "index.js",
   "license": "MIT",

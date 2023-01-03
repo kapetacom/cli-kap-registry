@@ -145,7 +145,7 @@ class NPMHandler {
         await this.ensureCredentials();
 
         const [scope] = details.name.split('/');
-        const npmRcFile = Path.join(process.cwd(),'.npmrc');
+        const npmRcFile = '.npmrc';
         this.makeBackup(npmRcFile);
         try {
             await this._cli.run(`echo '@${scope}:registry=${details.registry}' > ${npmRcFile}`);
@@ -219,12 +219,13 @@ class NPMHandler {
 
     restoreBackup(file) {
         const backupFile = Path.join(this._directory, file + '.original');
+        const originalFile = Path.join(this._directory, file);
         if (FS.existsSync(backupFile)) {
-            FS.unlinkSync(Path.join(this._directory, file));
+            FS.unlinkSync(originalFile);
             FS.renameSync(backupFile, Path.join(this._directory, file));
         } else {
             //Nothing to backup - get rid of file still
-            FS.unlinkSync(Path.join(this._directory, file));
+            FS.unlinkSync(originalFile);
         }
     }
 
