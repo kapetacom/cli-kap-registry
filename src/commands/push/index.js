@@ -421,7 +421,7 @@ class PushOperation {
 
 /**
  *
- * @param {string} [file="block.yml"]
+ * @param {string} [file="blockware.yml"]
  * @param {PushCommandOptions} cmdObj
  * @returns {Promise<void>}
  */

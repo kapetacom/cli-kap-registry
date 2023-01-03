@@ -6,6 +6,7 @@ const Config = require("../../config");
 const { hashElement } = require('folder-hash');
 const os = require("os");
 const Authentication = require("../../services/Authentication");
+const FSExtra = require("fs-extra");
 
 const MAVEN_SERVER_ID = 'blockware';
 /**
@@ -207,6 +208,10 @@ class MavenHandler {
         const repo = `${MAVEN_SERVER_ID}::default::${details.registry}`;
         const dependencyGetCmd = `mvn -U --settings "${this._configFile}" dependency:get -B -Ddest=${target} -Dartifact=${artifact} -DremoteRepositories=${repo}`;
         await this._cli.progress('Pulling maven package', () => this._cli.run(dependencyGetCmd, this._directory));
+    }
+
+    async install(sourcePath, targetPath) {
+        FSExtra.moveSync(sourcePath, targetPath, {recursive: true, overwrite: true});
     }
 
     async build() {

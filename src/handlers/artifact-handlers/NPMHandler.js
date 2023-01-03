@@ -1,7 +1,9 @@
 const FS = require('node:fs');
 const URL = require('node:url');
 const Path = require('node:path');
+const FSExtra = require('fs-extra');
 const Config = require("../../config");
+const tar = require('tar');
 const Authentication = require('../../services/Authentication');
 
 /**
@@ -54,7 +56,7 @@ class NPMHandler {
             if (packInfo[0].filename) {
                 FS.unlinkSync(packInfo[0].filename
                     .replace(/\//g, '-')
-                    .replace(/^@/,''));
+                    .replace(/^@/, ''));
             }
 
             if (packInfo[0].integrity) {
@@ -142,9 +144,51 @@ class NPMHandler {
     async pull(details, target, registryService) {
         await this.ensureCredentials();
 
-        await this._cli.progress(`Pulling NPM package: ${details.name}:${details.version}`,
-            () => this._cli.run(`npm pack --registry ${details.registry} --pack-destination=${target} @${details.name}@${details.version}`, this._directory));
+        const [scope] = details.name.split('/');
+        const npmRcFile = Path.join(process.cwd(),'.npmrc');
+        this.makeBackup(npmRcFile);
+        try {
+            await this._cli.run(`echo '@${scope}:registry=${details.registry}' > ${npmRcFile}`);
+            await this._cli.progress(`Pulling NPM package: ${details.name}:${details.version}`,
+                () => this._cli.run(`npm pack --registry ${details.registry} --pack-destination=${target} @${details.name}@${details.version}`, this._directory));
+        } finally {
+            this.restoreBackup(npmRcFile);
+        }
 
+    }
+
+    /**
+     *
+     * @param {string} sourcePath
+     * @param {string} targetPath
+     */
+    async install(sourcePath, targetPath) {
+
+        const files = FS.readdirSync(sourcePath);
+        const tarFiles = files.filter(file => /.tgz$/.test(file));
+
+        if (tarFiles.length !== 1) {
+            throw new Error('Invalid blockware asset');
+        }
+
+        if (FS.existsSync(targetPath)) {
+            FSExtra.removeSync(targetPath);
+        }
+
+        FSExtra.mkdirpSync(targetPath);
+
+        const absolutePath = Path.join(sourcePath, tarFiles[0]);
+
+        tar.extract({
+            file: absolutePath,
+            cwd: targetPath,
+            sync: true,
+            strip: 1 //Needed since we've got a random root directory we want to ignore
+        });
+
+        process.env.NODE_ENV = 'production';
+        //Install npm dependencies
+        await this._cli.run('npm install', targetPath);
     }
 
     _getPackageInfo() {
@@ -158,11 +202,14 @@ class NPMHandler {
     }
 
     makeBackup(file) {
+        const originalFile = Path.join(this._directory, file);
         const backupFile = Path.join(this._directory, file + '.original');
         if (FS.existsSync(backupFile)) {
             FS.unlinkSync(backupFile);
         }
-        FS.copyFileSync(Path.join(this._directory, file), backupFile);
+        if (FS.existsSync(originalFile)) {
+            FS.copyFileSync(originalFile, backupFile);
+        }
     }
 
     restorePackageBackup() {
@@ -175,6 +222,9 @@ class NPMHandler {
         if (FS.existsSync(backupFile)) {
             FS.unlinkSync(Path.join(this._directory, file));
             FS.renameSync(backupFile, Path.join(this._directory, file));
+        } else {
+            //Nothing to backup - get rid of file still
+            FS.unlinkSync(Path.join(this._directory, file));
         }
     }
 

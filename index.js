@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-
 const BlockwareCommand = require('@blockware/blockctl-command');
 const packageData = require('./package');
 const Config = require('./src/config');
-
+const ClusterConfiguration = require('@blockware/local-cluster-config');
 const command = new BlockwareCommand(packageData.command, packageData.version);
 const program = command.program();
-
 
 function catchError(callback) {
 
@@ -36,7 +34,7 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Clone to this path. Defaults to current working dir + organisation + name')
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
-    .description('Clone source code of block from registry - e.g. clone "my-company/my-block"')
+    .description('Clone source code of asset from registry - e.g. clone "my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
 
 program
@@ -44,8 +42,44 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Pull to this path- Defaults to current working dir')
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
-    .description('Pull docker image for block from registry - e.g. pull "my-company/my-block"')
+    .description('Pull artifact for asset from registry - e.g. pull "my-company/my-block"')
     .action(catchError(require('./src/commands/pull')));
+
+program
+    .command('list')
+    .alias('ls')
+    .option('-f, --filter [kinds...]', 'Filter list by kind')
+    .description('List all installed assets')
+    .action((args) => {
+        console.log('\n# Installed assets');
+        const providers = ClusterConfiguration.getDefinitions(args.filter);
+        providers.forEach((asset) => {
+            console.log( '\n* %s[%s:%s]\n  from %s', asset.definition.kind, asset.definition.metadata.name, asset.version, asset.path);
+        });
+        console.log('');
+        process.exit(0);
+    });
+
+program
+    .command('link')
+    .description('Links current working directory as an asset with "local" version in local repository.')
+    .alias('ln')
+    .action(catchError(require('./src/commands/link')));
+
+program
+    .command('install <blockuri>')
+    .alias('i')
+    .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
+    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block"')
+    .action(catchError(require('./src/commands/install')));
+
+program
+    .command('uninstall <blockuri>')
+    .alias('rm')
+    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .description('Removes asset from local repository - e.g. uninstall "my-company/my-block:1.0.0"')
+    .action(catchError(require('./src/commands/uninstall')));
 
 program
     .command('view <blockuri>')

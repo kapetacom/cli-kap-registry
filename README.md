@@ -5,9 +5,9 @@ Enabled pushing, cloning, and pull image from blockware registry
 ## Auto-versioning
 The registry command automatically calculates the next semantic version whenever you push. 
 This is done by comparing the block versions and the logic is as follows:
-- If nothing is added, updated or removed in your block.yml it will increment the patch version
-- If nothing is updated or removed - but some things have been added in your block.yml it will increment the minor version
-- If anything is updated or removed in your block.yml it will increment the major version
+- If nothing is added, updated or removed in your blockware.yml it will increment the patch version
+- If nothing is updated or removed - but some things have been added in your blockware.yml it will increment the minor version
+- If anything is updated or removed in your blockware.yml it will increment the major version
 
 ## Versioning validation
 If you disable auto-versioning (```--auto-versioning false``) the command will still verify your version and perform 

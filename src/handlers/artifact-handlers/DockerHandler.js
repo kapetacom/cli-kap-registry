@@ -5,6 +5,7 @@ const DockerService = require("../../services/DockerService");
 const Config = require("../../config");
 const VersionCalculator = require("../../utils/VersionCalculator");
 const Authentication = require("../../services/Authentication");
+const FSExtra = require("fs-extra");
 /**
  * @class
  * @implements {ArtifactHandler}
@@ -208,6 +209,14 @@ class DockerHandler {
         await this._cli.progress(`Pulling docker image: ${details.primary}`, async () => {
             await this._dockerService.pull(details.primary);
         });
+
+        //We just put this here to actually put something on disk
+        //Currently unused
+        FS.writeFileSync(Path.join(target, 'docker-info.json'), JSON.stringify(details, null, 2));
+    }
+
+    async install(sourcePath, targetPath) {
+        FSExtra.moveSync(sourcePath, targetPath, {recursive: true, overwrite: true});
     }
 
     async build() {

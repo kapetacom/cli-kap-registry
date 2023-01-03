@@ -8,6 +8,15 @@ interface PullCommandOptions {
     target:string
 }
 
+interface InstallCommandOptions {
+    registry: string
+    nonInteractive: boolean
+}
+
+interface UninstallCommandOptions {
+    nonInteractive: boolean
+}
+
 interface CloneCommandOptions {
     registry: string
     target: string
@@ -81,6 +90,8 @@ interface ArtifactHandler<T extends any = any> {
     push(name:string, version:string, commit:string): Promise<Artifact<T>>
 
     pull(details:T, target:string, registryService:RegistryService):Promise<void>
+
+    install(sourcePath:string, targetPath:string):Promise<void>
 
     build():Promise<void>;
 

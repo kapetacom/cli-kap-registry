@@ -1,6 +1,7 @@
 const FS = require('fs');
 const Path = require('path');
 const YAML = require('yaml');
+const FSExtra = require('fs-extra');
 /**
  * @class
  * @implements {ArtifactHandler}
@@ -71,6 +72,10 @@ class YAMLHandler {
         FS.writeFileSync(dest, YAML.stringify(version.content));
 
         this._cli.info(`Wrote YAML to ${dest}`);
+    }
+
+    async install(sourcePath, targetPath) {
+        FSExtra.moveSync(sourcePath, targetPath, {recursive: true, overwrite: true});
     }
 
     async build() {
