@@ -16,7 +16,7 @@ class RegistryService {
 
     /**
      *
-     * @param {AssetDefinition[]} assets
+     * @param {ReservationRequest} assets
      * @returns {Promise<Reservation>}
      */
     async reserveVersions(assets) {

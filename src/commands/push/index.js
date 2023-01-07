@@ -165,11 +165,11 @@ class PushOperation {
 
     /**
      *
-     * @param {AssetDefinition[]} assets
+     * @param {ReservationRequest} reservationRequest
      * @returns {Promise<Reservation>}
      */
-    async reserveVersions(assets) {
-        this.reservation = await this._registryService.reserveVersions(assets);
+    async reserveVersions(reservationRequest) {
+        this.reservation = await this._registryService.reserveVersions(reservationRequest);
         if (!this.reservation) {
             throw new Error('Failed to reserve version - no reservation returned from registry. ');
         }
@@ -300,7 +300,7 @@ class PushOperation {
     /**
      * Calls each check and step in the order it's intended.
      *
-     * @returns {Promise<string[]>}
+     * @returns {Promise<{references:string[],mainBranch:boolean}>}
      */
     async perform() {
         const vcsHandler = await this.vcsHandler();
@@ -315,15 +315,23 @@ class PushOperation {
 
         await this.runTests(artifactHandler);
 
-        /**
-         * Reserve registry version - start 2-phase commit
-         *
-         * @type {Reservation}
-         */
+        const {branch, main} = vcsHandler ?
+            await vcsHandler.getBranch(this._directory)
+            : {main:true, branch: 'master'};
+
         const reservation = await this._cli.progress(
             `Create version reservation`,
-            async () => this.reserveVersions(this.assetDefinitions)
+            async () => this.reserveVersions({
+                assets: this.assetDefinitions,
+                mainBranch: main,
+                branchName: branch
+            })
         );
+
+        this._cli.info(`Got new versions: `);
+        reservation.versions.forEach(v => {
+            this._cli.info(` - ${v.content.metadata.name}:${v.version}`);
+        })
 
         /**
          * @type {AssetVersion[]}
@@ -346,7 +354,7 @@ class PushOperation {
             let vcsTags = [];
 
             if (vcsHandler) {
-                const {branch, main} = await vcsHandler.getBranch(this._directory);
+
                 repository = {
                     type: vcsHandler.getType(),
                     details: await vcsHandler.getCheckoutInfo(this._directory),
@@ -355,17 +363,19 @@ class PushOperation {
                     main
                 };
                 commitId = repository.commit;
-                this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > [${reservation.versions.map(v => v.version).join(', ')}]`);
-                if (reservation.versions.length > 1) {
-                    for(let i = 0; i < reservation.versions.length; i++) {
-                        const version = reservation.versions[i].version;
-                        const assetDefinition = reservation.versions[i].content;
-                        //Multiple assets in this repo - use separate tags for each
-                        vcsTags.push(`v${version}-${assetDefinition.metadata.name}`);
+                if (main) {
+                    this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > [${reservation.versions.map(v => v.version).join(', ')}]`);
+                    if (reservation.versions.length > 1) {
+                        for(let i = 0; i < reservation.versions.length; i++) {
+                            const version = reservation.versions[i].version;
+                            const assetDefinition = reservation.versions[i].content;
+                            //Multiple assets in this repo - use separate tags for each
+                            vcsTags.push(`v${version}-${assetDefinition.metadata.name}`);
+                        }
+                    } else if (reservation.versions.length === 1) {
+                        //Only 1 asset in this repo - use simple version
+                        vcsTags.push(`v${reservation.versions[0].version}`);
                     }
-                } else if (reservation.versions.length === 1) {
-                    //Only 1 asset in this repo - use simple version
-                    vcsTags.push(`v${reservation.versions[0].version}`);
                 }
             }
 
@@ -397,7 +407,7 @@ class PushOperation {
                 assetVersions.push(assetVersion);
             }
 
-            await this._cli.progress('Committing version', async () => this.commitReservation(reservation, assetVersions));
+            await this._cli.progress(`Committing versions: ${assetVersions.map(av => av.version)}`, async () => this.commitReservation(reservation, assetVersions));
 
             if (vcsHandler && vcsTags.length > 0) {
                 await this._cli.progress('Tagging commit', async () => {
@@ -410,9 +420,12 @@ class PushOperation {
             }
 
             await this._cli.check(`Push completed`, true);
-            return assetVersions.map(assetVersion => {
-                return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
-            })
+            return {
+                references: assetVersions.map(assetVersion => {
+                    return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
+                }),
+                mainBranch: main
+            };
 
         } catch (e) {
             await this._cli.progress('Aborting version', async () => this.abortReservation(reservation));
@@ -441,9 +454,10 @@ module.exports = async function push(cmdObj) {
             await cli.progress('Linking local version', () => Linker());
         }
 
-        const references = await operation.perform();
+        const {references,mainBranch} = await operation.perform();
 
-        if (!cmdObj.skipInstall &&
+        if (mainBranch &&
+            !cmdObj.skipInstall &&
             references.length > 0) {
             //We install assets once we've pushed them.
             await cli.progress('Installing new versions', () => Installer(references, {
@@ -452,7 +466,6 @@ module.exports = async function push(cmdObj) {
                 skipDependencies: true
             }));
         }
-
 
     } catch (err) {
         cli.error('Push failed: %s', err.message);
