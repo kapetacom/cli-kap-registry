@@ -44,7 +44,7 @@ class MavenHandler {
                     <httpHeaders>
                         <property>
                             <name>Authorization</name>
-                            <value>Bearer ${token}</value>
+                            <value>${token}</value>
                         </property>
                     </httpHeaders>
                 </configuration>
@@ -87,7 +87,10 @@ class MavenHandler {
             return server.elements.find(el => el.name === 'id').elements[0].text === MAVEN_SERVER_ID;
         });
 
-        const newServer = MavenHandler.generateServer(new Authentication().getToken());
+        const auth = new Authentication();
+        const newServer = MavenHandler.generateServer(auth.hasCredentials() ?
+            `Bearer ${auth.getToken()}`
+            : Authentication.ANONYMOUS);
 
         if (blockwareServer) {
             blockwareServer.elements = newServer.elements;

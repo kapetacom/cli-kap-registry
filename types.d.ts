@@ -11,7 +11,7 @@ interface PullCommandOptions {
 interface InstallCommandOptions {
     registry?: string
     nonInteractive: boolean
-    skipDependencies: boolean
+    skipDependencies?: boolean
 }
 
 interface UninstallCommandOptions {

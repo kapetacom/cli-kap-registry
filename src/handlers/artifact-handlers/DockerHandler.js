@@ -20,9 +20,8 @@ class DockerHandler {
         this._cli = cli;
         this._directory = directory;
         this._hostInfo = URL.parse(Config.data.registry.docker);
-        this._dockerService = new DockerService(this._cli, this._hostInfo, new Authentication().getToken());
-
-
+        const auth = new Authentication();
+        this._dockerService = new DockerService(this._cli, this._hostInfo, auth.hasCredentials() ? auth.getToken() : null);
     }
 
 
@@ -212,6 +211,7 @@ class DockerHandler {
 
         //We just put this here to actually put something on disk
         //Currently unused
+        FSExtra.mkdirpSync(target);
         FS.writeFileSync(Path.join(target, 'docker-info.json'), JSON.stringify(details, null, 2));
     }
 

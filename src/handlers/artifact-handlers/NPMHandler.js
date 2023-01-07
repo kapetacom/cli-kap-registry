@@ -73,7 +73,7 @@ class NPMHandler {
 
     async ensureCredentials(scope, registryUrl) {
         const key = `//${this._hostInfo.host}/:_authToken`
-        const value = new Authentication().getToken();
+        const authentication = new Authentication();
         this.makeNpmBackup();
         //Make sure this scope goes to the right registry
 
@@ -84,7 +84,12 @@ class NPMHandler {
         return this._cli.progress('Configuring NPM access',
             async () => {
                 await this._cli.run(`echo '@${scope}:registry=${registryUrl}' >> .npmrc`);
-                await this._cli.run(`npm config --location user set "${key}"="${value}"`);
+                if (authentication.hasCredentials()) {
+                    await this._cli.run(`npm config --location user set "${key}"="${authentication.getToken()}"`);
+                } else {
+                    await this._cli.run(`npm config --location user set "${key}"=""`);
+                }
+
             });
     }
 

@@ -9,11 +9,14 @@ const installer = require('./src/commands/install')
 
 function catchError(callback) {
 
-    return async function() {
+    return async function(cmd) {
         try {
             return await callback.apply(this, arguments);
         } catch(err) {
             console.error('[ERROR] ' + err.message);
+            if (cmd.verbose) {
+                console.error('[TRACE] ' + err.stack);
+            }
             process.exit(-1);
         }
     }
@@ -46,6 +49,7 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Pull to this path- Defaults to current working dir')
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-v, --verbose', 'Show additional output for debugging')
     .description('Pull artifact for asset from registry - e.g. pull "my-company/my-block"')
     .action(catchError(require('./src/commands/pull')));
 
@@ -76,6 +80,7 @@ program
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('--skip-dependencies', 'Do not install dependencies')
+    .option('-v, --verbose', 'Show additional output for debugging')
     .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block"')
     .action(catchError(installer));
 
@@ -83,12 +88,14 @@ program
     .command('uninstall [blockuri...]')
     .alias('rm')
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-v, --verbose', 'Show additional output for debugging')
     .description('Removes asset from local repository - e.g. uninstall "my-company/my-block:1.0.0"')
     .action(catchError(require('./src/commands/uninstall')));
 
 program
     .command('view <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
+    .option('-v, --verbose', 'Show additional output for debugging')
     .description('View block definition - e.g. view "my-company/my-block"')
     .action(catchError(require('./src/commands/view')));
 
@@ -118,6 +125,7 @@ program
 program
     .command('init-defaults')
     .description('Installs default providers')
+    .option('-v, --verbose', 'Show additional output for debugging')
     .action(catchError(async () => {
         console.log('## Installing default providers');
         const providers = require('./default-providers');

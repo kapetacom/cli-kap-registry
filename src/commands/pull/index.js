@@ -48,7 +48,7 @@ module.exports = async function pull(uri, cmdObj) {
 
     const target = addToLocalRepo ?
         Path.join(ClusterConfiguration.getRepositoryBasedir(),
-            blockInfo.handle, blockInfo.name, blockInfo.version)
+            blockInfo.handle, blockInfo.name, assetVersion.version)
         : cmdObj.target;
 
     cli.info(`Pulling artifact using ${handler.getName()}`);

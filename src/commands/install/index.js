@@ -61,7 +61,7 @@ async function doInstall(cli, uris, cmdObj) {
 
         const assetExists = await cli.progress('Checking if asset exists', () => Promise.resolve(FS.existsSync(installPath)));
         if (assetExists) {
-            await cli.check(`Asset already installed at ${installPath}`, false);
+            await cli.check(`Asset already installed at ${installPath}`, true);
             continue;
         }
 

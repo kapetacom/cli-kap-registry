@@ -71,6 +71,10 @@ class RegistryService {
     }
 
     async _request(method, path, body, headers) {
+        const authHeaders = {};
+        if (this.authentication.hasCredentials()) {
+            authHeaders['authorization'] = `Bearer ${this.authentication.getToken()}`;
+        }
         try {
             const requestOptions = {
                 method,
@@ -79,7 +83,7 @@ class RegistryService {
                 json: true,
                 headers: {
                     'accept': 'application/json',
-                    'authorization': `Bearer ${this.authentication.getToken()}`,
+                    ...authHeaders,
                     ...headers
                 }
             };
