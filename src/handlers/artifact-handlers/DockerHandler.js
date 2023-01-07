@@ -125,9 +125,9 @@ class DockerHandler {
         const versionInfo = VersionCalculator.parseVersion(version);
 
         return [
-            `${prefix}${versionInfo.major}.${versionInfo.minor}.${versionInfo.patch}`,
-            `${prefix}${versionInfo.major}.${versionInfo.minor}`,
-            `${prefix}${versionInfo.major}`
+            `${prefix}${versionInfo.toFullVersion()}`,
+            `${prefix}${versionInfo.toMinorVersion()}`,
+            `${prefix}${versionInfo.toMajorVersion()}`
         ];
     }
 

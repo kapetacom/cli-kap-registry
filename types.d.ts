@@ -166,6 +166,12 @@ interface Reservation {
     versions:ReservedVersion[]
 }
 
+interface ReservationRequest {
+    mainBranch:boolean
+    branchName:string
+    assets:AssetDefinition[]
+}
+
 interface ReservedVersion {
     ownerId:string
     version:string
@@ -258,6 +264,9 @@ interface VersionInfo {
     patch: number
     major: number
     minor: number
+    toMajorVersion: () => string
+    toMinorVersion: () => string
+    toFullVersion: () => string
     compare: (other: VersionInfo) => number
     toString: () => string
 }
