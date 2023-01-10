@@ -127,6 +127,11 @@ program
     .description('Installs default providers')
     .option('-v, --verbose', 'Show additional output for debugging')
     .action(catchError(async () => {
+        if (process.env.CI) {
+            console.log('## Skipping default providers. Not needed for continuous-integration');
+            return;
+        }
+
         console.log('## Installing default providers');
         const providers = require('./default-providers');
         await installer(providers, {nonInteractive: true});
