@@ -468,11 +468,12 @@ module.exports = async function push(cmdObj) {
         }
 
     } catch (err) {
-        cli.error('Push failed: %s', err.message);
+        cli.error('Push failed');
 
         if (cmdObj.verbose && err.stack) {
             cli.error(err.stack);
         }
+        throw err;
     }
 
 };

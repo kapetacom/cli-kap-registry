@@ -42,35 +42,31 @@ module.exports = async function clone(uri, cmdObj) {
         throw new Error('No version control handler found for type: ' + registration.vcs.type);
     }
 
-    try {
 
-        const target = cmdObj.target || Path.join(process.cwd(), registration.content.metadata.name);
+    const target = cmdObj.target || Path.join(process.cwd(), registration.content.metadata.name);
 
-        cli.start(`Clone repository to ${target}`);
-        await cli.progress('Preparing for repository clone', async () => {
-            const targetParent = Path.resolve(target, '../');
+    cli.start(`Clone repository to ${target}`);
+    await cli.progress('Preparing for repository clone', async () => {
+        const targetParent = Path.resolve(target, '../');
 
-            if (FS.existsSync(targetParent)) {
-                cli.debug(`Verified parent folder exists: ${targetParent}`);
-            } else {
-                cli.debug(`Creating parent folder: ${targetParent}`);
-                FSExtra.mkdirpSync(targetParent);
-            }
-        });
-
-        const checkoutId = (blockInfo.version === 'current') ?
-            registration.repository.branch :
-            registration.repository.commit
-
-        const clonedPath = await handler.clone(registration.repository.details, checkoutId, target);
-
-        await cli.check('Asset source code was cloned', true);
-
-        if (!cmdObj.skipLinking ||
-            blockInfo.version !== 'current') {
-            await cli.progress('Linking code to local repository', () => Linker(clonedPath));
+        if (FS.existsSync(targetParent)) {
+            cli.debug(`Verified parent folder exists: ${targetParent}`);
+        } else {
+            cli.debug(`Creating parent folder: ${targetParent}`);
+            FSExtra.mkdirpSync(targetParent);
         }
-    } catch (e) {
-        cli.error(e.message);
+    });
+
+    const checkoutId = (blockInfo.version === 'current') ?
+        registration.repository.branch :
+        registration.repository.commit
+
+    const clonedPath = await handler.clone(registration.repository.details, checkoutId, target);
+
+    await cli.check('Asset source code was cloned', true);
+
+    if (!cmdObj.skipLinking ||
+        blockInfo.version !== 'current') {
+        await cli.progress('Linking code to local repository', () => Linker(clonedPath));
     }
 };
