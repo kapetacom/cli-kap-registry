@@ -59,8 +59,8 @@ module.exports = async function pull(uri, cmdObj) {
 
     FSExtra.mkdirpSync(blockwareFolder);
 
-    //Write the asset.yml - it's usually included in the package but might contain multiple
-    const targetYML = Path.join(blockwareFolder, 'asset.yml');
+    //Write the blockware.yml - it's usually included in the package but might contain multiple
+    const targetYML = Path.join(target, 'blockware.yml');
     FS.writeFileSync(targetYML, YAML.stringify(assetVersion.content));
 
     cli.info(`Wrote block information to ${targetYML}`);
