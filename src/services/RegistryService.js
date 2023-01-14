@@ -30,7 +30,7 @@ class RegistryService {
      * @returns {Promise<void>}
      */
     async commitReservation(reservationId, assetVersions ) {
-        return this._request('POST', `/publish`, assetVersions, {
+        return this._request('POST', `/commit`, assetVersions, {
             'If-Match': reservationId
         });
     }
