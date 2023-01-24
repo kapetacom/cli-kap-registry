@@ -1,8 +1,8 @@
 {
     "registry": {
         "url": "https://registry.blockware.com",
-        "npm": "https://npm.artifacts.blockware.com",
-        "maven": "https://maven.artifacts.blockware.com",
-        "docker": "https://docker.artifacts.blockware.com"
+        "npm": "https://npm.blockware.com",
+        "maven": "https://maven.blockware.com",
+        "docker": "https://docker.blockware.com"
     }
 }
