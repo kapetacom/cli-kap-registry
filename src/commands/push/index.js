@@ -305,6 +305,7 @@ class PushOperation {
     async perform() {
         const vcsHandler = await this.vcsHandler();
         const artifactHandler = await this.artifactHandler();
+        const dryRun = !!this.cmdObj.dryRun;
 
         //Make sure file structure is as expected
         await this._cli.progress('Verifying files exist', async () => this.checkExists());
@@ -385,41 +386,71 @@ class PushOperation {
 
             const readme = this.getReadmeData();
 
-            for (let i = 0; i < reservation.versions.length; i++) {
-                const reservedVersion = reservation.versions[i];
-                const name = reservedVersion.content.metadata.name;
+            if (!dryRun) {
 
-                const artifact = await artifactHandler.push(name, reservedVersion.version, commitId);
+                for (let i = 0; i < reservation.versions.length; i++) {
+                    const reservedVersion = reservation.versions[i];
+                    const name = reservedVersion.content.metadata.name;
 
-                /**
-                 *
-                 * @type {AssetVersion}
-                 */
-                const assetVersion = {
-                    version: reservedVersion.version,
-                    content: reservedVersion.content,
-                    checksum,
-                    readme,
-                    repository,
-                    artifact
-                }
+                    const artifact = await artifactHandler.push(name, reservedVersion.version, commitId);
 
-                assetVersions.push(assetVersion);
-            }
-
-            await this._cli.progress(`Committing versions: ${assetVersions.map(av => av.version)}`, async () => this.commitReservation(reservation, assetVersions));
-
-            if (vcsHandler && vcsTags.length > 0) {
-                await this._cli.progress('Tagging commit', async () => {
-                    for (let i = 0; i < vcsTags.length; i++) {
-                        await vcsHandler.tag(this._directory, vcsTags[i]);
+                    /**
+                     *
+                     * @type {AssetVersion}
+                     */
+                    const assetVersion = {
+                        version: reservedVersion.version,
+                        content: reservedVersion.content,
+                        checksum,
+                        readme,
+                        repository,
+                        artifact
                     }
 
-                    await vcsHandler.pushTags(this._directory);
-                });
+                    assetVersions.push(assetVersion);
+                }
+
+                await this._cli.progress(`Committing versions: ${assetVersions.map(av => av.version)}`, async () => this.commitReservation(reservation, assetVersions));
+
+                if (vcsHandler && vcsTags.length > 0) {
+                    await this._cli.progress('Tagging commit', async () => {
+                        for (let i = 0; i < vcsTags.length; i++) {
+                            await vcsHandler.tag(this._directory, vcsTags[i]);
+                        }
+
+                        await vcsHandler.pushTags(this._directory);
+                    });
+                }
+
+                await this._cli.check(`Push completed`, true);
+            } else {
+                for (let i = 0; i < reservation.versions.length; i++) {
+                    const reservedVersion = reservation.versions[i];
+                    const name = reservedVersion.content.metadata.name;
+
+
+
+                    /**
+                     *
+                     * @type {AssetVersion}
+                     */
+                    const assetVersion = {
+                        version: reservedVersion.version,
+                        content: reservedVersion.content,
+                        checksum,
+                        readme,
+                        repository,
+                        artifact: null
+                    }
+
+                    assetVersions.push(assetVersion);
+                    this._cli.info('Result:')
+                    this._cli.info(YAML.stringify(assetVersions));
+                }
+
+                await this._cli.check(`Dry run completed`, true);
             }
 
-            await this._cli.check(`Push completed`, true);
             return {
                 references: assetVersions.map(assetVersion => {
                     return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
@@ -450,7 +481,7 @@ module.exports = async function push(cmdObj) {
 
     try {
 
-        if (!cmdObj.skipLinking) {
+        if (!cmdObj.skipLinking && !cmdObj.dryRun) {
             await cli.progress('Linking local version', () => Linker());
         }
 
@@ -458,6 +489,7 @@ module.exports = async function push(cmdObj) {
 
         if (mainBranch &&
             !cmdObj.skipInstall &&
+            !cmdObj.dryRun &&
             references.length > 0) {
             //We install assets once we've pushed them.
             await cli.progress('Installing new versions', () => Installer(references, {

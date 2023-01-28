@@ -33,6 +33,7 @@ interface PushCommandOptions {
     verbose: boolean
     skipInstall: boolean
     skipLinking: boolean
+    dryRun:boolean
 }
 
 interface GitDetails {

@@ -32,6 +32,7 @@ program
     .option('-v, --verbose', 'Show additional output for debugging')
     .option('--skip-install', 'Do not install artifacts locally after pushing')
     .option('--skip-linking', 'Do not link current working directory to local repository')
+    .option('--dry-run', 'Do not actually do anything - just perform checks')
     .description('Push asset defined by blockware.yml in current working directory to registry.')
     .action(catchError(require('./src/commands/push')));
 

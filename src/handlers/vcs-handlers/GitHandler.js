@@ -132,15 +132,14 @@ class GitHandler {
 
     async getBranch(directory) {
         const [remote, branch] = await this.getRemote(directory);
-
         const git = Git(directory);
 
-        const remoteBase = `refs/remotes/${remote}`;
+        const remoteInfoRaw = await git.remote(['show', remote]);
+        let [,defaultBranch] = /HEAD branch: (.+)/.exec(remoteInfoRaw);
 
-        //Returns something like "refs/remotes/origin/master"
-        const result = await git.raw(['symbolic-ref', `${remoteBase}/HEAD`]);
-
-        const defaultBranch = result ? result.trim().split(remoteBase + '/')[1] : 'master';
+        if (!defaultBranch) {
+            throw new Error(`Could not determine default branch from git remote: ${remote}, current branch: ${branch}`);
+        }
 
         return {
             branch,
@@ -160,7 +159,6 @@ class GitHandler {
     }
 
     async getCheckoutInfo(directory) {
-
         const [remote, branch] = await this.getRemote(directory);
 
         const git = Git(directory);
