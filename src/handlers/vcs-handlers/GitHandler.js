@@ -77,25 +77,24 @@ class GitHandler {
     async getTagsForLatest(directory) {
         const git = Git(directory);
 
-        const tag = await git.tag();
+        const tag = await git.tags();
         if (!tag) {
             return [];
         }
 
-        return tag
-            .trim()
-            .split(/\n/g)
+        return tag.all
             .map((tag) => tag.trim());
     }
 
     async tag(directory, tag) {
         const git = Git(directory);
-
+        const [remote] = await this.getRemote(directory);
         const existingTags = await this.getTagsForLatest(directory);
 
         if (existingTags.indexOf(tag) > -1) {
-            //Tag already exists - ignore
-            return false;
+            //Tag already exists - delete and overwrite
+            await git.raw(['tag','-d', tag]);
+            await git.raw(['push',remote,'--delete',tag]);
         }
 
         this._cli.debug('Tagging latest commit: %s', tag);
