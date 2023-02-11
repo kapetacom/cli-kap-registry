@@ -6,6 +6,7 @@ const ClusterConfiguration = require('@blockware/local-cluster-config');
 const command = new BlockwareCommand(packageData.command, packageData.version);
 const program = command.program();
 const installer = require('./src/commands/install')
+const providers = require("./default-providers.json");
 
 function catchError(callback) {
 
@@ -82,7 +83,7 @@ program
     .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('--skip-dependencies', 'Do not install dependencies')
     .option('-v, --verbose', 'Show additional output for debugging')
-    .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block"')
+    .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block". Omit version to install latest')
     .action(catchError(installer));
 
 program
@@ -121,6 +122,24 @@ program
         Config.data.registry[type] = host;
         Config.save();
         console.log('Default host for %s set to %s', type, host);
+    }));
+
+program
+    .command('upgrade')
+    .description('Installs latest version of all existing providers')
+    .option('-v, --verbose', 'Show additional output for debugging')
+    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .action(catchError(async (cmdObj) => {
+        const providers = ClusterConfiguration
+            .getProviderDefinitions()
+            .map((asset) => {
+                return asset.definition.metadata.name
+            });
+
+        console.log('## Upgrading all providers');
+
+        await installer(providers, cmdObj);
+
     }));
 
 program
