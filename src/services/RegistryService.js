@@ -16,6 +16,25 @@ class RegistryService {
 
     /**
      *
+     * @param {AssetDefinition} asset
+     * @returns {Promise<AssetReference[]>}
+     */
+    async resolveDependencies(asset) {
+        return  this._request('POST', `/dependencies/resolve`, asset);
+    }
+
+    /**
+     *
+     * @param {AssetDefinition} asset
+     * @param {ReferenceMap[]} dependencies
+     * @return {Promise<AssetDefinition>}
+     */
+    async updateDependencies(asset, dependencies) {
+        return  this._request('POST', `/dependencies/update`, {asset,dependencies});
+    }
+
+    /**
+     *
      * @param {ReservationRequest} assets
      * @returns {Promise<Reservation>}
      */

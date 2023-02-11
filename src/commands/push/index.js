@@ -8,16 +8,21 @@ const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const CLIHandler = require('../../handlers/CLIHandler');
 const RegistryService = require('../../services/RegistryService');
 const Config = require('../../config');
+const {parseBlockwareUri} = require("../../utils/BlockwareUriParser");
+const ClusterConfiguration = require("@blockware/local-cluster-config");
+const glob = require("glob");
+
+const LOCAL_VERSION_MAPPING_CACHE = {};
 
 class PushOperation {
 
     /**
      *
      * @param {CLIHandler} cli
-     * @param {string} file
+     * @param {string} directory
      * @param {PushCommandOptions} cmdObj
      */
-    constructor(cli, file, cmdObj) {
+    constructor(cli, directory, cmdObj) {
 
         /**
          *
@@ -34,7 +39,7 @@ class PushOperation {
         /**
          * @type {string}
          */
-        this.file = Path.resolve(process.cwd(), file);
+        this.file = Path.resolve(process.cwd(), directory, 'blockware.yml');
 
         /**
          *
@@ -219,6 +224,129 @@ class PushOperation {
         }
     }
 
+    findAssetsInPath() {
+        const baseDir = Path.dirname(this.file);
+        const assetFiles = glob.sync('*/**/blockware.yml', {cwd: baseDir});
+        const localAssets = {};
+        for(let assetFile of assetFiles) {
+            const fullPath = Path.join(baseDir,assetFile);
+            const yamlData = FS.readFileSync(fullPath).toString();
+            const assets = YAML.parseAllDocuments(yamlData).map(doc => doc.toJSON());
+            assets.forEach(asset => {
+                localAssets[asset.metadata.name] = Path.dirname(fullPath);
+            });
+        }
+
+        return localAssets;
+    }
+
+    async checkDependencies() {
+        const localAssets = this.findAssetsInPath();
+        await this._cli.progress(`Checking dependencies`, async () => {
+            const newAssets = [];
+
+            for(let assetDefinition of this.assetDefinitions) {
+                newAssets.push(await this._checkDependenciesFor(assetDefinition, localAssets));
+            }
+
+            //We overwrite assetDefinitions since we might have resolved some dependencies
+            this.assetDefinitions = newAssets;
+        });
+    }
+
+
+
+    /**
+     *
+     * @param {AssetDefinition} asset
+     * @param {{[key:string]:string}} localAssets
+     * @return {Promise<AssetDefinition>}
+     * @private
+     */
+    async _checkDependenciesFor(asset, localAssets) {
+        const dependencies = await this.resolveDependencies(asset);
+        /**
+         *
+         * @type {ReferenceMap[]}
+         */
+        const dependencyChanges = [];
+        for(let dependency of dependencies) {
+            const dependencyUri = parseBlockwareUri(dependency.name);
+            if (dependencyUri.version !== 'local') {
+                //If not local all is well
+                continue;
+            }
+
+            if (LOCAL_VERSION_MAPPING_CACHE[dependency.name]) {
+                //Mapping already found
+                dependencyChanges.push({
+                    from: dependency.name,
+                    to: LOCAL_VERSION_MAPPING_CACHE[dependency.name]
+                });
+                continue;
+            }
+
+            const key = `${dependencyUri.handle}/${dependencyUri.name}`
+            let assetLocalPath;
+            if (localAssets[key]) {
+                assetLocalPath = localAssets[key];
+                this._cli.info(`Resolved local version for ${key} from path: ${assetLocalPath}`);
+            } else {
+                const localPath = ClusterConfiguration
+                    .getRepositoryAssetPath(dependencyUri.handle, dependencyUri.name, dependencyUri.version);
+
+                if (!FS.existsSync(localPath)) {
+                    throw new Error('Path for local dependency not found: ' + localPath);
+                }
+
+                assetLocalPath = FS.realpathSync(localPath);
+
+                if (!FS.existsSync(assetLocalPath)) {
+                    throw new Error('Resolved path for local dependency not found: ' + localPath);
+                }
+
+                this._cli.info(`Resolved local version for ${key} from local repository: ${assetLocalPath}`);
+            }
+
+
+            //Local dependency - we need to push that first and
+            //replace version with pushed version - but only "in-flight"
+            //We dont want to change the disk version - since that allows users
+            //to continue working on their local versions + local dependencies
+            await this._cli.progress(`Pushing local version for ${key}`, async () => {
+                const dependencyOperation = new PushOperation(this._cli, assetLocalPath, this.cmdObj);
+
+                const {references} = await dependencyOperation.perform();
+
+                if (references &&
+                    references.length > 0) {
+                    for(let reference of references) {
+                        const referenceUri = parseBlockwareUri(reference);
+                        if (referenceUri.handle === dependencyUri.handle &&
+                            referenceUri.name === dependencyUri.name &&
+                            referenceUri.version !== 'local') {
+                            this._cli.info('Resolved version for local dependency: %s > %s', dependency.name, referenceUri.version);
+                            dependencyChanges.push({
+                                from: dependency.name,
+                                to: reference
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        if (dependencyChanges.length > 0) {
+            dependencyChanges.forEach(ref => {
+                //Cache mappings for other push operations and assets
+                LOCAL_VERSION_MAPPING_CACHE[ref.from] = ref.to;
+            });
+            return this.updateDependencies(asset, dependencyChanges);
+        }
+
+        return asset;
+    }
+
     /**
      *
      * @param {ArtifactHandler} artifactHandler
@@ -268,6 +396,26 @@ class PushOperation {
         await this._registryService.abortReservation(reservation);
     }
 
+    /**
+     *
+     * @param {AssetDefinition} asset
+     * @return {Promise<AssetReference[]>}
+     */
+    async resolveDependencies(asset) {
+        return this._registryService.resolveDependencies(asset);
+    }
+
+
+    /**
+     *
+     * @param {AssetDefinition} asset
+     * @param {ReferenceMap[]} dependencies
+     * @return {Promise<AssetDefinition>}
+     */
+    async updateDependencies(asset, dependencies) {
+        return this._registryService.updateDependencies(asset, dependencies);
+    }
+
     getReadmeData() {
         const paths = [
             {
@@ -307,10 +455,13 @@ class PushOperation {
         const artifactHandler = await this.artifactHandler();
         const dryRun = !!this.cmdObj.dryRun;
 
+
         //Make sure file structure is as expected
         await this._cli.progress('Verifying files exist', async () => this.checkExists());
 
         await this._cli.progress('Verifying working directory', async () => this.checkWorkingDirectory());
+
+        await this.checkDependencies();
 
         await this.runBuild(artifactHandler);
 
@@ -471,13 +622,13 @@ class PushOperation {
  * @returns {Promise<void>}
  */
 module.exports = async function push(cmdObj) {
-    const file = 'blockware.yml';
+
 
     const cli = CLIHandler.get(!cmdObj.nonInteractive);
 
-    cli.start(`Push ${file}`);
+    const operation = new PushOperation(cli, process.cwd(), cmdObj);
 
-    const operation = new PushOperation(cli, file, cmdObj);
+    cli.start(`Push ${operation.file}`);
 
     try {
 
