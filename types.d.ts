@@ -193,6 +193,16 @@ interface AssetDefinition {
     spec: AssetSpec
 }
 
+interface AssetReference {
+    name:string
+    type:string
+}
+
+interface ReferenceMap {
+    from:string
+    to:string
+}
+
 type AssetSpec = any;
 
 type APIResourceType = string | { $ref: string }

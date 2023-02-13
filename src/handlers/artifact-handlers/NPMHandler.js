@@ -54,9 +54,12 @@ class NPMHandler {
             packInfo.length > 0) {
             //Delete tmp file
             if (packInfo[0].filename) {
-                FS.unlinkSync(packInfo[0].filename
+                const pathName = packInfo[0].filename
                     .replace(/\//g, '-')
-                    .replace(/^@/, ''));
+                    .replace(/^@/, '');
+                if (FS.existsSync(pathName)) {
+                    FS.unlinkSync(pathName);
+                }
             }
 
             if (packInfo[0].integrity) {
