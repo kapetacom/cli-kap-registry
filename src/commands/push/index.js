@@ -471,14 +471,45 @@ class PushOperation {
             await vcsHandler.getBranch(this._directory)
             : {main:true, branch: 'master'};
 
+        const commit =  vcsHandler ? await this.getCurrentVcsCommit() : null;
+        const checksum = await artifactHandler.calculateChecksum();
+
         const reservation = await this._cli.progress(
             `Create version reservation`,
             async () => this.reserveVersions({
                 assets: this.assetDefinitions,
                 mainBranch: main,
-                branchName: branch
+                branchName: branch,
+                commit,
+                checksum
             })
         );
+
+        const existingVersions = [];
+
+        reservation.versions = reservation.versions.filter(version => {
+            if (version.exists) {
+                existingVersions.push(version);
+            }
+            return !version.exists;
+        });
+
+        if (existingVersions.length > 0) {
+            this._cli.info(`Version already existed remotely:`);
+            existingVersions.forEach(v => {
+                this._cli.info(` - ${v.content.metadata.name}:${v.version}`);
+            });
+        }
+
+        if (reservation.versions.length < 1) {
+            this._cli.info(`No new versions found.`);
+            return {
+                references: existingVersions.map(assetVersion => {
+                    return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
+                }),
+                mainBranch: main
+            };
+        }
 
         this._cli.info(`Got new versions: `);
         reservation.versions.forEach(v => {
@@ -510,11 +541,11 @@ class PushOperation {
                 repository = {
                     type: vcsHandler.getType(),
                     details: await vcsHandler.getCheckoutInfo(this._directory),
-                    commit: await this.getCurrentVcsCommit(),
+                    commit,
                     branch,
                     main
                 };
-                commitId = repository.commit;
+                commitId = commit;
                 if (main) {
                     this._cli.info(`Assigning ${vcsHandler.getName()} commit id to version: ${commitId} > [${reservation.versions.map(v => v.version).join(', ')}]`);
                     if (reservation.versions.length > 1) {
@@ -531,7 +562,7 @@ class PushOperation {
                 }
             }
 
-            const checksum = await artifactHandler.calculateChecksum();
+
 
             this._cli.info(`Calculated checksum for artifact: ${checksum}`);
 

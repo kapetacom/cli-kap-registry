@@ -177,6 +177,7 @@ interface ReservedVersion {
     ownerId:string
     version:string
     content:AssetDefinition
+    exists:boolean
 }
 
 interface AssetVersion<T extends any = any, U extends any = any> {
