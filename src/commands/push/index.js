@@ -242,7 +242,7 @@ class PushOperation {
 
     async checkDependencies() {
         const localAssets = this.findAssetsInPath();
-        await this._cli.progress(`Checking dependencies`, async () => {
+        await this._cli.progress(`Checking ${Object.keys(localAssets).length} dependencies`, async () => {
             const newAssets = [];
 
             for(let assetDefinition of this.assetDefinitions) {
@@ -265,6 +265,8 @@ class PushOperation {
      */
     async _checkDependenciesFor(asset, localAssets) {
         const dependencies = await this.resolveDependencies(asset);
+
+        console.log('dependencies', dependencies);
         /**
          *
          * @type {ReferenceMap[]}
@@ -595,13 +597,17 @@ class PushOperation {
                 await this._cli.progress(`Committing versions: ${assetVersions.map(av => av.version)}`, async () => this.commitReservation(reservation, assetVersions));
 
                 if (vcsHandler && vcsTags.length > 0) {
-                    await this._cli.progress('Tagging commit', async () => {
-                        for (let i = 0; i < vcsTags.length; i++) {
-                            await vcsHandler.tag(this._directory, vcsTags[i]);
-                        }
+                    try {
+                        await this._cli.progress('Tagging commit', async () => {
+                            for (let i = 0; i < vcsTags.length; i++) {
+                                await vcsHandler.tag(this._directory, vcsTags[i]);
+                            }
 
-                        await vcsHandler.pushTags(this._directory);
-                    });
+                            await vcsHandler.pushTags(this._directory);
+                        });
+                    } catch (e) {
+                        //Ignore errors for tagging
+                    }
                 }
 
                 await this._cli.check(`Push completed`, true);
