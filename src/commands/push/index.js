@@ -8,7 +8,7 @@ const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const CLIHandler = require('../../handlers/CLIHandler');
 const RegistryService = require('../../services/RegistryService');
 const Config = require('../../config');
-const {parseBlockwareUri} = require("../../utils/KapetaUriParser");
+const {parseKapetaUri} = require("../../utils/KapetaUriParser");
 const ClusterConfiguration = require("@kapeta/local-cluster-config");
 const glob = require("glob");
 
@@ -39,7 +39,7 @@ class PushOperation {
         /**
          * @type {string}
          */
-        this.file = Path.resolve(process.cwd(), directory, 'blockware.yml');
+        this.file = Path.resolve(process.cwd(), directory, 'kapeta.yml');
 
         /**
          *
@@ -226,7 +226,7 @@ class PushOperation {
 
     findAssetsInPath() {
         const baseDir = Path.dirname(this.file);
-        const assetFiles = glob.sync('*/**/blockware.yml', {cwd: baseDir});
+        const assetFiles = glob.sync('*/**/kapeta.yml', {cwd: baseDir});
         const localAssets = {};
         for(let assetFile of assetFiles) {
             const fullPath = Path.join(baseDir,assetFile);
@@ -273,7 +273,7 @@ class PushOperation {
          */
         const dependencyChanges = [];
         for(let dependency of dependencies) {
-            const dependencyUri = parseBlockwareUri(dependency.name);
+            const dependencyUri = parseKapetaUri(dependency.name);
             if (dependencyUri.version !== 'local') {
                 //If not local all is well
                 continue;
@@ -323,7 +323,7 @@ class PushOperation {
                 if (references &&
                     references.length > 0) {
                     for(let reference of references) {
-                        const referenceUri = parseBlockwareUri(reference);
+                        const referenceUri = parseKapetaUri(reference);
                         if (referenceUri.handle === dependencyUri.handle &&
                             referenceUri.name === dependencyUri.name &&
                             referenceUri.version !== 'local') {
@@ -507,7 +507,7 @@ class PushOperation {
             this._cli.info(`No new versions found.`);
             return {
                 references: existingVersions.map(assetVersion => {
-                    return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
+                    return `kapeta://${assetVersion.content.metadata.name}:${assetVersion.version}`;
                 }),
                 mainBranch: main
             };

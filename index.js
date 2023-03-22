@@ -147,7 +147,7 @@ program
     .description('Installs default providers')
     .option('-v, --verbose', 'Show additional output for debugging')
     .action(catchError(async () => {
-        if (process.env.BLOCKWARE_CI) {
+        if (process.env.KAPETA_CI) {
             console.log('## Skipping default providers. Not needed for continuous-integration');
             return;
         }
