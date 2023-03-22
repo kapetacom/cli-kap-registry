@@ -8,8 +8,8 @@ const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const CLIHandler = require('../../handlers/CLIHandler');
 const RegistryService = require('../../services/RegistryService');
 const Config = require('../../config');
-const {parseBlockwareUri} = require("../../utils/BlockwareUriParser");
-const ClusterConfiguration = require("@blockware/local-cluster-config");
+const {parseBlockwareUri} = require("../../utils/KapetaUriParser");
+const ClusterConfiguration = require("@kapeta/local-cluster-config");
 const glob = require("glob");
 
 const LOCAL_VERSION_MAPPING_CACHE = {};

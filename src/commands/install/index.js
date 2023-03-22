@@ -30,7 +30,6 @@ async function doInstall(cli, uris, cmdObj) {
 
     for(let i = 0; i < uris.length; i++) {
         const uri = uris[i];
-
         const blockInfo = parseKapetaUri(uri);
 
         const registryService = new RegistryService(
