@@ -31,8 +31,8 @@ class DockerService {
 
     _ensureConfig() {
         const auth = this._accessToken ?
-            Buffer.from(`blockware:${this._accessToken}`).toString('base64')
-            : Buffer.from(`blockware:${ANONYMOUS}`).toString('base64');
+            Buffer.from(`kapeta:${this._accessToken}`).toString('base64')
+            : Buffer.from(`kapeta:${ANONYMOUS}`).toString('base64');
 
         this._configDir = `${os.homedir()}/.docker`;
         this._configFile = `${this._configDir}/config.json`;

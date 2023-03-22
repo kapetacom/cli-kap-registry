@@ -183,7 +183,7 @@ class NPMHandler {
         const tarFiles = files.filter(file => /.tgz$/.test(file));
 
         if (tarFiles.length !== 1) {
-            throw new Error('Invalid blockware asset');
+            throw new Error('Invalid kapeta asset');
         }
 
         if (FS.existsSync(targetPath)) {

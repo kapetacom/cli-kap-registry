@@ -1,8 +1,8 @@
 const FS = require('node:fs');
-const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
+const {parseKapetaUri} = require('../../utils/KapetaUriParser');
 const CLIHandler = require('../../handlers/CLIHandler');
 const FSExtra = require('fs-extra');
-const ClusterConfiguration = require('@blockware/local-cluster-config');
+const ClusterConfiguration = require('@kapeta/local-cluster-config');
 
 /**
  *
@@ -15,7 +15,7 @@ module.exports = async function uninstall(uris, cmdObj) {
     cli.start('Removing assets');
     for (let i = 0; i < uris.length; i++) {
         const uri = uris[i];
-        const blockInfo = parseBlockwareUri(uri);
+        const blockInfo = parseKapetaUri(uri);
         const path = ClusterConfiguration.getRepositoryAssetPath(blockInfo.handle, blockInfo.name, blockInfo.version);
 
         if (!FS.existsSync(path)) {

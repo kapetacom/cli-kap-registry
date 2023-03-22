@@ -110,7 +110,7 @@ class RegistryService {
             return await request(requestOptions);
         } catch(e) {
             if (e.message.indexOf('ECONNREFUSED') > -1) {
-                throw new Error(`Failed to reach Blockware registry on ${this.baseUrl}. Please check your settings and try again.`);
+                throw new Error(`Failed to reach Kapeta registry on ${this.baseUrl}. Please check your settings and try again.`);
             }
 
             if (e.statusCode > 0) {

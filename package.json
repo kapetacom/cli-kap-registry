@@ -1,8 +1,8 @@
 {
-  "name": "@blockware/blockctl-command-registry",
+  "name": "@kapeta/blockctl-command-registry",
   "command": "registry",
   "version": "0.0.27",
-  "description": "Push and pull from Blockware registry",
+  "description": "Push and pull from Kapeta registry",
   "main": "index.js",
   "license": "MIT",
   "private": false,
@@ -22,8 +22,8 @@
     "postinstall": "node index.js init-defaults"
   },
   "dependencies": {
-    "@blockware/blockctl-command": "<2",
-    "@blockware/local-cluster-config": "<2",
+    "@kapeta/blockctl-command": "<2",
+    "@kapeta/local-cluster-config": "<2",
     "blessed": "^0.1.81",
     "docker-file-parser": "^1.0.4",
     "folder-hash": "^4.0.2",

@@ -1,5 +1,5 @@
 const Config = require('../../config');
-const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
+const {parseKapetaUri} = require('../../utils/KapetaUriParser');
 const CLIHandler = require('../../handlers/CLIHandler');
 const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const RegistryService = require('../../services/RegistryService');
@@ -7,7 +7,7 @@ const YAML = require('yaml');
 const Path = require('path');
 const FS = require('fs');
 const FSExtra = require('fs-extra');
-const ClusterConfiguration = require('@blockware/local-cluster-config');
+const ClusterConfiguration = require('@kapeta/local-cluster-config');
 
 /**
  *
@@ -16,7 +16,7 @@ const ClusterConfiguration = require('@blockware/local-cluster-config');
  * @returns {Promise<void>}
  */
 module.exports = async function pull(uri, cmdObj) {
-    const blockInfo = parseBlockwareUri(uri);
+    const blockInfo = parseKapetaUri(uri);
 
     const registryService = new RegistryService(
         cmdObj.registry || Config.data.registry.url,
@@ -55,18 +55,18 @@ module.exports = async function pull(uri, cmdObj) {
 
     await handler.pull(assetVersion.artifact.details, target, registryService);
 
-    const blockwareFolder = Path.join(target, '.blockware');
+    const kapetaFolder = Path.join(target, '.kapeta');
 
-    FSExtra.mkdirpSync(blockwareFolder);
+    FSExtra.mkdirpSync(kapetaFolder);
 
-    //Write the blockware.yml - it's usually included in the package but might contain multiple
-    const targetYML = Path.join(target, 'blockware.yml');
+    //Write the kapeta.yml - it's usually included in the package but might contain multiple
+    const targetYML = Path.join(target, 'kapeta.yml');
     FS.writeFileSync(targetYML, YAML.stringify(assetVersion.content));
 
     cli.info(`Wrote block information to ${targetYML}`);
 
     //Write version information to file
-    const versionYML = Path.join(blockwareFolder, 'version.yml');
+    const versionYML = Path.join(kapetaFolder, 'version.yml');
     FS.writeFileSync(versionYML, YAML.stringify(assetVersion));
 
     cli.info(`Wrote version information to ${versionYML}`);

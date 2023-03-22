@@ -2,7 +2,7 @@ const YAML = require('yaml');
 const Path = require("node:path");
 const FS = require("node:fs");
 const FSExtra = require('fs-extra');
-const ClusterConfiguration = require('@blockware/local-cluster-config');
+const ClusterConfiguration = require('@kapeta/local-cluster-config');
 const CLIHandler = require("../../handlers/CLIHandler");
 
 function makeSymLink(directory, versionTarget) {
@@ -25,15 +25,15 @@ module.exports = async function link(source) {
 
     const cli = CLIHandler.get(false);
 
-    const blockwareYmlFilePath = Path.join(source, 'blockware.yml');
-    if (!FS.existsSync(blockwareYmlFilePath)) {
-        throw new Error('Current working directory is not a valid blockware asset. Expected a blockware.yml file');
+    const kapetaYmlFilePath = Path.join(source, 'kapeta.yml');
+    if (!FS.existsSync(kapetaYmlFilePath)) {
+        throw new Error('Current working directory is not a valid kapeta asset. Expected a kapeta.yml file');
     }
 
-    const assetInfos = YAML.parseAllDocuments(FS.readFileSync(blockwareYmlFilePath).toString())
+    const assetInfos = YAML.parseAllDocuments(FS.readFileSync(kapetaYmlFilePath).toString())
         .map(doc => doc.toJSON());
 
-    //If there are multiple assets in the blockware.yml - we still just create 1 symlink since both will
+    //If there are multiple assets in the kapeta.yml - we still just create 1 symlink since both will
     //otherwise be loaded twice
     const assetInfo = assetInfos[0];
     const [handle, name] = assetInfo.metadata.name.split('/');

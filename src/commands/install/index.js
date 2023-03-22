@@ -2,13 +2,13 @@ const Path = require('node:path');
 const OS = require('node:os');
 const FS = require('node:fs');
 const Config = require('../../config');
-const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
+const {parseKapetaUri} = require('../../utils/KapetaUriParser');
 const CLIHandler = require('../../handlers/CLIHandler');
 const ArtifactHandler = require('../../handlers/ArtifactHandler');
 const RegistryService = require('../../services/RegistryService');
 const YAML = require('yaml');
 const FSExtra = require('fs-extra');
-const ClusterConfiguration = require('@blockware/local-cluster-config');
+const ClusterConfiguration = require('@kapeta/local-cluster-config');
 
 const attemptedToInstall = {};
 
@@ -31,7 +31,7 @@ async function doInstall(cli, uris, cmdObj) {
     for(let i = 0; i < uris.length; i++) {
         const uri = uris[i];
 
-        const blockInfo = parseBlockwareUri(uri);
+        const blockInfo = parseKapetaUri(uri);
 
         const registryService = new RegistryService(
             cmdObj.registry || Config.data.registry.url,

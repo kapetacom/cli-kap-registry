@@ -1,8 +1,8 @@
 {
     "registry": {
-        "url": "https://registry.blockware.com",
-        "npm": "https://npm.blockware.com",
-        "maven": "https://maven.blockware.com",
-        "docker": "https://docker.blockware.com"
+        "url": "https://registry.kapeta.com",
+        "npm": "https://npm.kapeta.com",
+        "maven": "https://maven.kapeta.com",
+        "docker": "https://docker.kapeta.com"
     }
 }

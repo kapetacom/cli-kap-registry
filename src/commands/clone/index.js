@@ -2,7 +2,7 @@ const Path = require('path');
 const FS = require('fs');
 const FSExtra = require('fs-extra');
 const Config = require('../../config');
-const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
+const {parseKapetaUri} = require('../../utils/KapetaUriParser');
 const RegistryService = require('../../services/RegistryService');
 const VCSHandler = require('../../handlers/VCSHandler');
 const CLIHandler = require('../../handlers/CLIHandler');
@@ -16,7 +16,7 @@ const Linker = require('../link');
  * @returns {Promise<void>}
  */
 module.exports = async function clone(uri, cmdObj) {
-    const blockInfo = parseBlockwareUri(uri);
+    const blockInfo = parseKapetaUri(uri);
 
     const registryService = new RegistryService(
         cmdObj.registry || Config.data.registry.url,

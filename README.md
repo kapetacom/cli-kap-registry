@@ -1,13 +1,13 @@
 # blockctl "registry" command
 
-Enabled pushing, cloning, and pull image from blockware registry
+Enabled pushing, cloning, and pull image from kapeta registry
 
 ## Auto-versioning
 The registry command automatically calculates the next semantic version whenever you push. 
 This is done by comparing the block versions and the logic is as follows:
-- If nothing is added, updated or removed in your blockware.yml it will increment the patch version
-- If nothing is updated or removed - but some things have been added in your blockware.yml it will increment the minor version
-- If anything is updated or removed in your blockware.yml it will increment the major version
+- If nothing is added, updated or removed in your kapeta.yml it will increment the patch version
+- If nothing is updated or removed - but some things have been added in your kapeta.yml it will increment the minor version
+- If anything is updated or removed in your kapeta.yml it will increment the major version
 
 ## Versioning validation
 If you disable auto-versioning (```--auto-versioning false``) the command will still verify your version and perform 
@@ -17,12 +17,12 @@ the following checks:
 
 ## Configuration
 The registry command has its own registry file in ```~/.blockctl/registry.yml```. The configuration
-determines what blockware and docker registry to use.
+determines what kapeta and docker registry to use.
 
 Example configuration can be seen below:
 ```yaml
 registry:
-  url: https://registry.blockware.com
+  url: https://registry.kapeta.com
   organisationId: my-company
   docker:
     registry: my-private-docker-repo.com
@@ -36,7 +36,7 @@ E.g. for a block named ```users``` the docker image would be named ```my-private
 To use the default docker registry (DockerHub) omit the docker registry configuration:
 ```yaml
 registry:
-  url: https://registry.blockware.com
+  url: https://registry.kapeta.com
   organisationId: my-company
 ```
 

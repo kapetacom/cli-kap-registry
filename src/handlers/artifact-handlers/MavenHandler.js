@@ -8,7 +8,7 @@ const os = require("os");
 const Authentication = require("../../services/Authentication");
 const FSExtra = require("fs-extra");
 
-const MAVEN_SERVER_ID = 'blockware';
+const MAVEN_SERVER_ID = 'kapeta';
 /**
  * @class
  * @implements {ArtifactHandler<MavenDetails>}
@@ -83,7 +83,7 @@ class MavenHandler {
             config.elements[0].elements.push(servers);
         }
 
-        let blockwareServer = servers.elements.find(server => {
+        let kapetaServer = servers.elements.find(server => {
             return server.elements.find(el => el.name === 'id').elements[0].text === MAVEN_SERVER_ID;
         });
 
@@ -92,11 +92,11 @@ class MavenHandler {
             `Bearer ${auth.getToken()}`
             : Authentication.ANONYMOUS);
 
-        if (blockwareServer) {
-            blockwareServer.elements = newServer.elements;
+        if (kapetaServer) {
+            kapetaServer.elements = newServer.elements;
         } else  {
-            blockwareServer = newServer;
-            servers.elements.push(blockwareServer);
+            kapetaServer = newServer;
+            servers.elements.push(kapetaServer);
         }
 
         const newSettings = XmlJS.js2xml(config, {spaces: 4});

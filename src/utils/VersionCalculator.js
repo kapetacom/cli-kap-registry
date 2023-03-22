@@ -314,10 +314,10 @@ class VersionCalculator {
 
         switch (kind) {
             //TODO: Special handling per resource kind should be moved to providers
-            case 'rest.blockware.com/v1/api':
-            case 'rest.blockware.com/v1/client':
-            case 'grpc.blockware.com/v1/api':
-            case 'grpc.blockware.com/v1/client':
+            case 'rest.kapeta.com/v1/api':
+            case 'rest.kapeta.com/v1/client':
+            case 'grpc.kapeta.com/v1/api':
+            case 'grpc.kapeta.com/v1/client':
                 return this.compareMethods(newResource.spec.methods, oldResource.spec.methods);
         }
 

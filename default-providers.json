@@ -1,13 +1,13 @@
 [
-    "blockware/block-type-service",
-    "blockware/block-type-frontend",
-    "blockware/resource-type-rest-api",
-    "blockware/resource-type-rest-client",
-    "blockware/resource-type-web-page",
-    "blockware/resource-type-web-fragment",
-    "blockware/resource-type-mongodb",
-    "blockware/resource-type-postgresql",
-    "blockware/language-target-nodejs",
-    "blockware/language-target-react-ts",
-    "blockware/language-target-java-spring-boot"
+    "kapeta/block-type-service",
+    "kapeta/block-type-frontend",
+    "kapeta/resource-type-rest-api",
+    "kapeta/resource-type-rest-client",
+    "kapeta/resource-type-web-page",
+    "kapeta/resource-type-web-fragment",
+    "kapeta/resource-type-mongodb",
+    "kapeta/resource-type-postgresql",
+    "kapeta/language-target-nodejs",
+    "kapeta/language-target-react-ts",
+    "kapeta/language-target-java-spring-boot"
 ]

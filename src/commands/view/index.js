@@ -1,6 +1,6 @@
 const YAML = require('yaml');
 const Config = require('../../config');
-const {parseBlockwareUri} = require('../../utils/BlockwareUriParser');
+const {parseKapetaUri} = require('../../utils/KapetaUriParser');
 const RegistryService = require('../../services/RegistryService');
 
 /**
@@ -10,7 +10,7 @@ const RegistryService = require('../../services/RegistryService');
  * @returns {Promise<void>}
  */
 module.exports = async function view(uri, cmdObj) {
-    const blockInfo = parseBlockwareUri(uri);
+    const blockInfo = parseKapetaUri(uri);
 
     const registryService = new RegistryService(
         cmdObj.registry || Config.data.registry.url,

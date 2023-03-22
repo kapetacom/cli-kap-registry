@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-const BlockwareCommand = require('@blockware/blockctl-command');
+const KapetaCommand = require('@kapeta/blockctl-command');
 const packageData = require('./package');
 const Config = require('./src/config');
-const ClusterConfiguration = require('@blockware/local-cluster-config');
-const command = new BlockwareCommand(packageData.command, packageData.version);
+const ClusterConfiguration = require('@kapeta/local-cluster-config');
+const command = new KapetaCommand(packageData.command, packageData.version);
 const program = command.program();
 const installer = require('./src/commands/install')
 const providers = require("./default-providers.json");
@@ -34,7 +34,7 @@ program
     .option('--skip-install', 'Do not install artifacts locally after pushing')
     .option('--skip-linking', 'Do not link current working directory to local repository')
     .option('--dry-run', 'Do not actually do anything - just perform checks')
-    .description('Push asset defined by blockware.yml in current working directory to registry.')
+    .description('Push asset defined by kapeta.yml in current working directory to registry.')
     .action(catchError(require('./src/commands/push')));
 
 program

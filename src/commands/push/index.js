@@ -118,7 +118,7 @@ class PushOperation {
     }
 
     async checkExists() {
-        //Check for blockware.yml file
+        //Check for kapeta.yml file
 
         const blockYml = Path.basename(this.file);
 
@@ -641,7 +641,7 @@ class PushOperation {
 
             return {
                 references: assetVersions.map(assetVersion => {
-                    return `blockware://${assetVersion.content.metadata.name}:${assetVersion.version}`;
+                    return `kapeta://${assetVersion.content.metadata.name}:${assetVersion.version}`;
                 }),
                 mainBranch: main
             };
@@ -659,8 +659,6 @@ class PushOperation {
  * @returns {Promise<void>}
  */
 module.exports = async function push(cmdObj) {
-
-
     const cli = CLIHandler.get(!cmdObj.nonInteractive);
 
     const operation = new PushOperation(cli, process.cwd(), cmdObj);

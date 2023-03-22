@@ -1,10 +1,10 @@
 const Path = require('path');
 const FS = require('fs');
 const YAML = require('yaml');
-const ClusterConfiguration = require('@blockware/local-cluster-config');
+const ClusterConfiguration = require('@kapeta/local-cluster-config');
 
-const BASEDIR_BLOCKWARE = ClusterConfiguration.getBlockwareBasedir();
-const BASEDIR_USER = Path.join(BASEDIR_BLOCKWARE, 'blockctl');
+const BASEDIR_KAPETA = ClusterConfiguration.getKapetaBasedir();
+const BASEDIR_USER = Path.join(BASEDIR_KAPETA, 'blockctl');
 
 let CONFIG_FILE = BASEDIR_USER + '/registry.yml';
 
