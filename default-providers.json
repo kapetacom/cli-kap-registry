@@ -6,5 +6,6 @@
     "kapeta/resource-type-web-page",
     "kapeta/resource-type-web-fragment",
     "kapeta/resource-type-mongodb",
-    "kapeta/resource-type-postgresql"
+    "kapeta/resource-type-postgresql",
+    "kapeta/language-target-react-ts"
 ]
