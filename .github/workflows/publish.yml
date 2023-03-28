@@ -16,4 +16,5 @@ jobs:
       - run: npm ci
       - run: npm publish --access public
         env:
+          KAPETA_CI: true
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
