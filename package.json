@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blockwarecom/blockctl-command-registry.git"
+    "url": "git+https://github.com/kapetacom/blockctl-command-registry.git"
   },
   "bugs": {
-    "url": "https://github.com/blockwarecom/blockctl-command-registry/issues"
+    "url": "https://github.com/kapetacom/blockctl-command-registry/issues"
   },
-  "homepage": "https://github.com/blockwarecom/blockctl-command-registry#readme",
+  "homepage": "https://github.com/kapetacom/blockctl-command-registry#readme",
   "scripts": {
     "test": "jest test/specs",
     "postinstall": "node index.js init-defaults"
