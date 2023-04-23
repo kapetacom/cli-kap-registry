@@ -32,78 +32,82 @@ async function doInstall(cli, uris, cmdObj) {
         const uri = uris[i];
         const blockInfo = parseKapetaUri(uri);
 
-        const registryService = new RegistryService(
-            cmdObj.registry || Config.data.registry.url,
-            blockInfo.handle
-        );
+        try {
+            const registryService = new RegistryService(
+                cmdObj.registry || Config.data.registry.url,
+                blockInfo.handle
+            );
 
 
-        const assetVersion = await cli.progress(`Loading ${uri}`,
-            () => registryService.getVersion(blockInfo.name, blockInfo.version)
-        );
+            const assetVersion = await cli.progress(`Loading ${uri}`,
+                () => registryService.getVersion(blockInfo.name, blockInfo.version)
+            );
 
-        if (!assetVersion) {
-            throw new Error('Registration not found: ' + uri);
+            if (!assetVersion) {
+                throw new Error('Registration not found: ' + uri);
+            }
+
+            if (!assetVersion.artifact?.type) {
+                throw new Error('Registration is missing artifact information: ' + uri);
+            }
+
+            const installPath = ClusterConfiguration.getRepositoryAssetPath(
+                blockInfo.handle,
+                blockInfo.name,
+                assetVersion.version
+            );
+
+            attemptedToInstall[`${blockInfo.handle}/${blockInfo.name}:${assetVersion.version}`] = true;
+
+            const assetExists = await cli.progress('Checking if asset exists', () => Promise.resolve(FS.existsSync(installPath)));
+            if (assetExists) {
+                await cli.check(`Asset already installed at ${installPath}`, true);
+                continue;
+            }
+
+            const handler = ArtifactHandler.getArtifactHandlerByType(cli, assetVersion.artifact.type);
+
+            if (!handler) {
+                throw new Error('Artifact type not found: ' + assetVersion.artifact.type);
+            }
+
+            cli.info(`Pulling artifact using ${handler.getName()}`);
+
+            const tmpFolder = Path.join(OS.tmpdir(), 'blockctl-asset-install', blockInfo.handle, blockInfo.name, assetVersion.version);
+            if (FS.existsSync(tmpFolder)) {
+                FSExtra.removeSync(tmpFolder);
+            }
+
+            FSExtra.mkdirpSync(tmpFolder);
+
+            await handler.pull(assetVersion.artifact.details, tmpFolder, registryService);
+
+            FSExtra.mkdirpSync(installPath);
+
+            await handler.install(tmpFolder, installPath);
+
+            const {baseDir, assetFile, versionFile} = ClusterConfiguration.getRepositoryAssetInfoPath(
+                blockInfo.handle,
+                blockInfo.name,
+                assetVersion.version
+            );
+
+            FSExtra.mkdirpSync(baseDir);
+
+            //Write the asset file - it's usually included in the package but might contain multiple
+            FS.writeFileSync(assetFile, YAML.stringify(assetVersion.content));
+            cli.info(`Wrote asset information to ${assetFile}`);
+
+            //Write version information to file
+            FS.writeFileSync(versionFile, YAML.stringify(assetVersion));
+            cli.info(`Wrote version information to ${versionFile}`);
+
+            assetVersion.dependencies.forEach(d => {
+                allDependencies[d.name] = true;
+            });
+        } catch (e) {
+            cli.error(`Failed to install: ${e.message}`);
         }
-
-        if (!assetVersion.artifact?.type) {
-            throw new Error('Registration is missing artifact information: ' + uri);
-        }
-
-        const installPath = ClusterConfiguration.getRepositoryAssetPath(
-            blockInfo.handle,
-            blockInfo.name,
-            assetVersion.version
-        );
-
-        attemptedToInstall[`${blockInfo.handle}/${blockInfo.name}:${assetVersion.version}`] = true;
-
-        const assetExists = await cli.progress('Checking if asset exists', () => Promise.resolve(FS.existsSync(installPath)));
-        if (assetExists) {
-            await cli.check(`Asset already installed at ${installPath}`, true);
-            continue;
-        }
-
-        const handler = ArtifactHandler.getArtifactHandlerByType(cli, assetVersion.artifact.type);
-
-        if (!handler) {
-            throw new Error('Artifact type not found: ' + assetVersion.artifact.type);
-        }
-
-        cli.info(`Pulling artifact using ${handler.getName()}`);
-
-        const tmpFolder = Path.join(OS.tmpdir(), 'blockctl-asset-install', blockInfo.handle, blockInfo.name, assetVersion.version);
-        if (FS.existsSync(tmpFolder)) {
-            FSExtra.removeSync(tmpFolder);
-        }
-
-        FSExtra.mkdirpSync(tmpFolder);
-
-        await handler.pull(assetVersion.artifact.details, tmpFolder, registryService);
-
-        FSExtra.mkdirpSync(installPath);
-
-        await handler.install(tmpFolder, installPath);
-
-        const {baseDir, assetFile, versionFile} = ClusterConfiguration.getRepositoryAssetInfoPath(
-            blockInfo.handle,
-            blockInfo.name,
-            assetVersion.version
-        );
-
-        FSExtra.mkdirpSync(baseDir);
-
-        //Write the asset file - it's usually included in the package but might contain multiple
-        FS.writeFileSync(assetFile, YAML.stringify(assetVersion.content));
-        cli.info(`Wrote asset information to ${assetFile}`);
-
-        //Write version information to file
-        FS.writeFileSync(versionFile, YAML.stringify(assetVersion));
-        cli.info(`Wrote version information to ${versionFile}`);
-
-        assetVersion.dependencies.forEach(d => {
-            allDependencies[d.name] = true;
-        });
     }
 
     if (!cmdObj.skipDependencies) {

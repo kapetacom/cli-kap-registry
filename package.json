@@ -1,7 +1,7 @@
 {
   "name": "@kapeta/blockctl-command-registry",
   "command": "registry",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "description": "Push and pull from Kapeta registry",
   "main": "index.js",
   "license": "MIT",
