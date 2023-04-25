@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 const KapetaCommand = require('@kapeta/blockctl-command');
 const packageData = require('./package');
-const Config = require('./src/config');
+const {Config} = require('@kapeta/nodejs-registry-utils');
 const ClusterConfiguration = require('@kapeta/local-cluster-config');
 const command = new KapetaCommand(packageData.command, packageData.version);
 const program = command.program();
 const installer = require('./src/commands/install')
-const providers = require("./default-providers.json");
 
 function catchError(callback) {
 
@@ -46,14 +45,6 @@ program
     .description('Clone source code of asset from registry - e.g. clone "my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
 
-program
-    .command('pull <blockuri>')
-    .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
-    .option('-t, --target <path>', 'Pull to this path- Defaults to current working dir')
-    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
-    .option('-v, --verbose', 'Show additional output for debugging')
-    .description('Pull artifact for asset from registry - e.g. pull "my-company/my-block"')
-    .action(catchError(require('./src/commands/pull')));
 
 program
     .command('list')
