@@ -1,6 +1,7 @@
 [
     "kapeta/block-type-service",
     "kapeta/block-type-frontend",
+    "kapeta/block-type-gateway-http",
     "kapeta/resource-type-rest-api",
     "kapeta/resource-type-rest-client",
     "kapeta/resource-type-web-page",
