@@ -1,8 +1,0 @@
-{
-    "registry": {
-        "url": "https://registry.kapeta.com",
-        "npm": "https://npm.kapeta.com",
-        "maven": "https://maven.kapeta.com",
-        "docker": "https://docker.kapeta.com"
-    }
-}
