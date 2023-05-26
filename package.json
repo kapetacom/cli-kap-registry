@@ -43,7 +43,7 @@
     "outputPath": "dist"
   },
   "dependencies": {
-    "@kapeta/blockctl-command": "<2",
+    "@kapeta/kap-command": "<2",
     "@kapeta/local-cluster-config": "<2",
     "@kapeta/nodejs-registry-utils": "<2",
     "@kapeta/nodejs-utils": "^0.0.10",

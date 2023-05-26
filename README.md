@@ -1,4 +1,4 @@
-# blockctl "registry" command
+# kap "registry" command
 
 Enabled pushing, cloning, and pull image from kapeta registry
 
@@ -16,7 +16,7 @@ the following checks:
 - Verify your new version against the latest version - to make sure it follows proper semantic versioning (See auto-versioning paragraph for logic)    
 
 ## Configuration
-The registry command has its own registry file in ```~/.blockctl/registry.yml```. The configuration
+The registry command has its own registry file in ```~/.kapeta/registry.yml```. The configuration
 determines what kapeta and docker registry to use.
 
 Example configuration can be seen below:

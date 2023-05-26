@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const KapetaCommand = require('@kapeta/blockctl-command');
+const KapetaCommand = require('@kapeta/kap-command');
 const packageData = require('./package');
 const {Config} = require('@kapeta/nodejs-registry-utils');
 const ClusterConfiguration = require('@kapeta/local-cluster-config');
