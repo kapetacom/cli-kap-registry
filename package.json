@@ -1,9 +1,9 @@
 {
-  "name": "@kapeta/blockctl-command-registry",
+  "name": "@kapeta/kap-registry",
   "command": "registry",
   "version": "0.0.36",
   "description": "Push and pull from Kapeta registry",
-  "main": "index.js",
+  "main": "registry.js",
   "license": "MIT",
   "private": false,
   "publishConfig": {
@@ -11,14 +11,36 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kapetacom/blockctl-command-registry.git"
+    "url": "git+https://github.com/kapetacom/cli-kap-registry.git"
   },
   "bugs": {
-    "url": "https://github.com/kapetacom/blockctl-command-registry/issues"
+    "url": "https://github.com/kapetacom/cli-kap-registry/issues"
   },
-  "homepage": "https://github.com/kapetacom/blockctl-command-registry#readme",
+  "homepage": "https://github.com/kapetacom/cli-kap-registry#readme",
   "scripts": {
-    "postinstall": "node index.js init-defaults"
+    "postinstall": "node registry.js init-defaults",
+    "build-binary": "pkg package.json"
+  },
+  "bin": {
+    "registry": "registry.js"
+  },
+  "pkg": {
+    "scripts": [
+      "registry.js"
+    ],
+    "targets": [
+      "node18-alpine-x64",
+      "node18-alpine-arm64",
+      "node18-linux-x64",
+      "node18-linux-arm64",
+      "node18-linuxstatic-x64",
+      "node18-linuxstatic-arm64",
+      "node18-macos-x64",
+      "node18-macos-arm64",
+      "node18-win-x64",
+      "node18-win-arm64"
+    ],
+    "outputPath": "dist"
   },
   "dependencies": {
     "@kapeta/blockctl-command": "<2",
@@ -43,6 +65,7 @@
     "zlib": "^1.0.5"
   },
   "devDependencies": {
-    "@types/node": "^18.16.0"
+    "@types/node": "^18.16.0",
+    "pkg": "^5.8.1"
   }
 }
