@@ -134,7 +134,7 @@ program
     }));
 
 program
-    .command('init-defaults')
+    .command('init')
     .description('Installs default providers')
     .option('-v, --verbose', 'Show additional output for debugging')
     .action(catchError(async () => {
