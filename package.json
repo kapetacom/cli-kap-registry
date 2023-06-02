@@ -45,8 +45,9 @@
   "dependencies": {
     "@kapeta/kap-command": "<2",
     "@kapeta/local-cluster-config": "<2",
+    "@kapeta/nodejs-api-client": "^0.0.12",
     "@kapeta/nodejs-registry-utils": "<2",
-    "@kapeta/nodejs-utils": "^0.0.10",
+    "@kapeta/nodejs-utils": "<2",
     "blessed": "^0.1.81",
     "docker-file-parser": "^1.0.4",
     "folder-hash": "^4.0.2",

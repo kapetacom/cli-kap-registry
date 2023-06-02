@@ -129,7 +129,14 @@ program
 
         console.log('## Upgrading all providers');
 
-        await installer(providers, cmdObj);
+        try {
+            await installer(providers, cmdObj);
+        } catch(err) {
+            if (err.message.indexOf('Authentication not found') > -1) {
+                throw new Error('Upgrading requires you are logged in. Use "kap login" to authenticate first.');
+            }
+            throw err;
+        }
 
     }));
 
