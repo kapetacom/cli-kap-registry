@@ -2,7 +2,7 @@
 const KapetaCommand = require('@kapeta/kap-command');
 const packageData = require('./package');
 const {Config} = require('@kapeta/nodejs-registry-utils');
-const ClusterConfiguration = require('@kapeta/local-cluster-config');
+const ClusterConfiguration = require('@kapeta/local-cluster-config').default;
 const command = new KapetaCommand(packageData.command, packageData.version);
 const program = command.program();
 const installer = require('./src/commands/install')
