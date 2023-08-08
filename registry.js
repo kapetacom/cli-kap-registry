@@ -67,6 +67,12 @@ program
     .alias('ln')
     .action(catchError(require('./src/commands/link')));
 
+
+program
+    .command('validate [source]')
+    .description('Validates kapeta YML file against schema and outputs issues.')
+    .action(catchError(require('./src/commands/validate')));
+
 program
     .command('install [blockuri...]')
     .alias('i')
@@ -155,5 +161,6 @@ program
         await installer(providers, {nonInteractive: true});
 
     }));
+
 
 command.start();
