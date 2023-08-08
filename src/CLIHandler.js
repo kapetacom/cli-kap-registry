@@ -3,11 +3,10 @@ const _ = require('lodash');
 const blessed = require('blessed');
 const OverviewEntry = require('./cli/OverviewEntry.js');
 const {spawn} = require("@kapeta/nodejs-process");
-
-
+const Symbols = require('./cli/symbols');
 
 function checkMark(ok) {
-    return ok ? '✓' : '✖'
+    return ok ? Symbols.success : Symbols.error
 }
 
 /**

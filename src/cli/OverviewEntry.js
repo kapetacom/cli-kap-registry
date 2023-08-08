@@ -1,5 +1,6 @@
 const Box = require('blessed/lib/widgets/box');
 const Text = require('blessed/lib/widgets/text');
+const Symbols = require('./symbols');
 
 class OverviewEntry extends Box {
     constructor(options) {
@@ -59,7 +60,7 @@ class OverviewEntry extends Box {
     end(ok) {
         clearInterval(this._timer);
 
-        this._icon.setContent(ok ? '{green-fg}✓{/}' : '{red-fg}✖{/}');
+        this._icon.setContent(ok ? `{green-fg}${Symbols.success}{/}` : `{red-fg}${Symbols.error}{/}`);
 
         this.screen.render();
     }
