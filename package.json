@@ -67,6 +67,7 @@
     "yaml": "^1.9.2",
     "zlib": "^1.0.5"
   },
+  "bundledDependencies": true,
   "devDependencies": {
     "@types/node": "^18.16.0",
     "pkg": "^5.8.1"
