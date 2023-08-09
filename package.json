@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/kapetacom/cli-kap-registry#readme",
   "scripts": {
-    "postinstall": "node registry.js init",
     "build-binary": "pkg package.json"
   },
   "bin": {
