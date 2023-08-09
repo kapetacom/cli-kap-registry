@@ -39,20 +39,42 @@ class CLIHandler {
         this._sections = 0;
     }
 
+    /**
+     *
+     * @param command
+     * @param directory
+     * @returns {Promise<{exit:number,output:string}>}
+     */
     async run(command, directory) {
         this.info(`Running command "${command}"`);
-        const child = spawn(command, [],{
-            cwd: directory ? directory : process.cwd(),
-            detached: true,
-            shell: true,
-            stdio: ['ignore', 'pipe', 'pipe']
-        });
 
-        child.onData((data) => {
-            this.debug(data.line);
-        });
+        return new Promise(async (resolve, reject) => {
+            try {
+                const child = spawn(command, [],{
+                    cwd: directory ? directory : process.cwd(),
+                    detached: true,
+                    shell: true,
+                    stdio: ['ignore', 'pipe', 'pipe']
+                });
 
-        await child.wait();
+                child.onData((data) => {
+                    this.debug(data.line);
+                });
+
+                const chunks = [];
+                child.process.stdout.on('data', (data) => {
+                    chunks.push(data);
+                });
+
+                child.process.on('exit', (exit, signal) => {
+                    resolve({exit, signal, output: Buffer.concat(chunks).toString()});
+                });
+
+                await child.wait();
+            } catch (e) {
+                reject(e);
+            }
+        })
     }
 
     start(title) {
