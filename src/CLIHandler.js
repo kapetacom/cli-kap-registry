@@ -52,7 +52,6 @@ class CLIHandler {
             try {
                 const child = spawn(command, [],{
                     cwd: directory ? directory : process.cwd(),
-                    detached: true,
                     shell: true,
                     stdio: ['ignore', 'pipe', 'pipe']
                 });
