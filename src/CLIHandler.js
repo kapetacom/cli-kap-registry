@@ -66,6 +66,10 @@ class CLIHandler {
                 });
 
                 child.process.on('exit', (exit, signal) => {
+                    if (exit !== 0) {
+                        reject(new Error(`Command "${command}" failed with exit code ${exit}`));
+                        return;
+                    }
                     resolve({exit, signal, output: Buffer.concat(chunks).toString()});
                 });
 
