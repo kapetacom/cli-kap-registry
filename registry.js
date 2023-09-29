@@ -17,7 +17,7 @@ function catchError(callback) {
             if (cmd.verbose) {
                 console.error('[TRACE] ' + err.stack);
             }
-            process.exit(-1);
+            process.exitCode = -1;
         }
     }
 }

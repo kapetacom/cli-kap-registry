@@ -98,7 +98,8 @@ class CLIHandler {
         this._screen.title = title;
 
         this._screen.key(['q', 'C-c'], () => {
-            process.exit(0);
+            // Exit w/ normal exit code (0 or process.exitCode if set)
+            process.exit();
         });
 
         // Create a box perfectly centered horizontally and vertically.
