@@ -1,3 +1,8 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
 const Box = require('blessed/lib/widgets/box');
 const Text = require('blessed/lib/widgets/text');
 const Symbols = require('./symbols');

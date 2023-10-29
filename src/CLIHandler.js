@@ -1,3 +1,8 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
 const Util = require('util');
 const _ = require('lodash');
 const blessed = require('blessed');
