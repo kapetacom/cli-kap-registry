@@ -1,4 +1,9 @@
 /**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
  * Copied from log-symbols and is-unicode-supported npm packages
  * because they only suppport esm modules
  */

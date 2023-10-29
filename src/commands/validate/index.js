@@ -1,3 +1,8 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
 const FS = require('fs');
 const CLIHandler = require('../../CLIHandler');
 const {validateSchema} = require('@kapeta/schemas');

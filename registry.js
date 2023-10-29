@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
 const KapetaCommand = require('@kapeta/kap-command');
 const packageData = require('./package');
 const {Config} = require('@kapeta/nodejs-registry-utils');

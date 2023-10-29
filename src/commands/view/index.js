@@ -1,3 +1,7 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
 const {Actions} = require('@kapeta/nodejs-registry-utils');
 
 /**

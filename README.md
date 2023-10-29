@@ -42,3 +42,7 @@ registry:
 
 ```organisationId``` is used as part of the naming for docker images - this should be equivalent to your
 DockerHub organisation name.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

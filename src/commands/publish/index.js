@@ -1,3 +1,8 @@
+/**
+ * Copyright 2023 Kapeta Inc.
+ * SPDX-License-Identifier: MIT
+ */
+
 const CLIHandler = require('../../CLIHandler');
 const {Actions} = require('@kapeta/nodejs-registry-utils');
 

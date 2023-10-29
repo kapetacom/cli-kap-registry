@@ -5,6 +5,11 @@
   "description": "Push and pull from Kapeta registry",
   "main": "registry.js",
   "license": "MIT",
+  "author": {
+    "email": "engineering@kapeta.com",
+    "name": "Kapeta",
+    "url": "https://kapeta.com"
+  },
   "private": false,
   "publishConfig": {
     "access": "public"
