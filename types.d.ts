@@ -2,33 +2,27 @@ interface CommandOptions {
     registry: string
 }
 
-interface PullCommandOptions {
-    registry: string
-    nonInteractive: boolean
-    target:string
-}
-
 interface InstallCommandOptions {
     registry?: string
-    nonInteractive: boolean
+    interactive: boolean
     skipDependencies?: boolean
 }
 
 interface UninstallCommandOptions {
-    nonInteractive: boolean
+    interactive: boolean
 }
 
 interface CloneCommandOptions {
     registry: string
     target: string
-    nonInteractive: boolean
+    interactive: boolean
     skipLinking: boolean
 }
 
-interface PushCommandOptions {
+interface PublishCommandOptions {
     registry: string
     ignoreWorkingDirectory: boolean
-    nonInteractive: boolean
+    interactive: boolean
     skipTests: boolean
     verbose: boolean
     skipInstall: boolean

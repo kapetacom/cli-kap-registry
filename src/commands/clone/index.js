@@ -10,6 +10,6 @@ const CLIHandler = require('../../CLIHandler');
  * @returns {Promise<void>}
  */
 module.exports = async function clone(uri, cmdObj) {
-    const cli = CLIHandler.get(!cmdObj.nonInteractive);
+    const cli = CLIHandler.get(cmdObj.interactive);
     return Actions.clone(cli, uri, cmdObj);
 };

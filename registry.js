@@ -22,11 +22,11 @@ function catchError(callback) {
     }
 }
 
-
 program
-    .command('push')
+    .command('publish')
+    .alias('push')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
-    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-i, --interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('-i, --ignore-working-directory', 'Skip check for changes in working directory')
     .option('-s, --skip-tests', 'Skip running tests')
     .option('-v, --verbose', 'Show additional output for debugging')
@@ -34,13 +34,13 @@ program
     .option('--skip-linking', 'Do not link current working directory to local repository')
     .option('--dry-run', 'Do not actually do anything - just perform checks')
     .description('Push asset defined by kapeta.yml in current working directory to registry.')
-    .action(catchError(require('./src/commands/push')));
+    .action(catchError(require('./src/commands/publish')));
 
 program
     .command('clone <blockuri>')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
     .option('-t, --target <path>', 'Clone to this path. Defaults to current working dir + organisation + name')
-    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-i, --interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('--skip-linking', 'Do not link cloned repository to local repository')
     .description('Clone source code of asset from registry - e.g. clone "my-company/my-block"')
     .action(catchError(require('./src/commands/clone')));
@@ -77,7 +77,7 @@ program
     .command('install [blockuri...]')
     .alias('i')
     .option('-r, --registry <url>', 'Use the registry at this url', Config.data.registry.url)
-    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-i, --interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('--skip-dependencies', 'Do not install dependencies')
     .option('-v, --verbose', 'Show additional output for debugging')
     .description('Install artifact for asset from registry into local repository - e.g. install "my-company/my-block". Omit version to install latest')
@@ -86,7 +86,7 @@ program
 program
     .command('uninstall [blockuri...]')
     .alias('rm')
-    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-i, --interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .option('-v, --verbose', 'Show additional output for debugging')
     .description('Removes asset from local repository - e.g. uninstall "my-company/my-block:1.0.0"')
     .action(catchError(require('./src/commands/uninstall')));
@@ -125,7 +125,7 @@ program
     .command('upgrade')
     .description('Installs latest version of all existing providers')
     .option('-v, --verbose', 'Show additional output for debugging')
-    .option('-n, --non-interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
+    .option('-i, --interactive', 'Uses non-interactive with no colors in output. Use this for running on servers')
     .action(catchError(async (cmdObj) => {
         const providers = ClusterConfiguration
             .getProviderDefinitions()

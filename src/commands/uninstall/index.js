@@ -8,7 +8,7 @@ const {Actions} = require('@kapeta/nodejs-registry-utils');
  * @returns {Promise<void>}
  */
 module.exports = async function uninstall(uris, cmdObj) {
-    const cli = new CLIHandler(!cmdObj.nonInteractive);
+    const cli = new CLIHandler(cmdObj.interactive);
     return Actions.uninstall(cli, uris);
 
 };
