@@ -10,7 +10,7 @@ const {Actions} = require('@kapeta/nodejs-registry-utils');
  */
 module.exports = async function install(uris, cmdObj) {
 
-    const cli = CLIHandler.get(!cmdObj.nonInteractive);
+    const cli = CLIHandler.get(cmdObj.interactive);
     cli.start('Installing assets');
 
     return Actions.install(cli, uris, cmdObj);
