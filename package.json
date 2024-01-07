@@ -51,7 +51,7 @@
     "@kapeta/local-cluster-config": ">=0.3.1 < 2",
     "@kapeta/nodejs-api-client": "<2",
     "@kapeta/nodejs-process": "^1.1.0",
-    "@kapeta/nodejs-registry-utils": ">=0.9 < 2",
+    "@kapeta/nodejs-registry-utils": ">=0.9.2 < 2",
     "@kapeta/nodejs-utils": "<2",
     "@kapeta/schemas": "^1.1.2",
     "blessed": "^0.1.81",
