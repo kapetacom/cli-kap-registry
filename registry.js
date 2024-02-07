@@ -19,7 +19,7 @@ function catchError(callback) {
             return await callback.apply(this, arguments);
         } catch(err) {
             console.error('[ERROR] ' + err.message);
-            if (cmd.verbose) {
+            if (cmd?.verbose) {
                 console.error('[TRACE] ' + err.stack);
             }
             process.exitCode = -1;
