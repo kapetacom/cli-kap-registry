@@ -6,7 +6,7 @@ import CLIHandler from "../CLIHandler";
 import { Actions, InstallCommandOptions } from "@kapeta/nodejs-registry-utils";
 
 export async function install(uris: string[], cmdObj: InstallCommandOptions) {
-  const cli = CLIHandler.get(!cmdObj.nonInteractive);
+  const cli = CLIHandler.get(cmdObj.interactive);
   cli.start("Installing assets");
 
   return Actions.install(cli, uris, cmdObj);

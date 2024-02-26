@@ -12,6 +12,6 @@ export async function uninstall(
   uris: string[],
   cmdObj: UninstallCommandOptions
 ) {
-  const cli = new CLIHandler(!cmdObj.nonInteractive);
+  const cli = new CLIHandler(cmdObj.interactive);
   return Actions.uninstall(cli, uris);
 }

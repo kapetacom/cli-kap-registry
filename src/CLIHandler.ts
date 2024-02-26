@@ -4,7 +4,7 @@
  */
 import * as Util from "util";
 import * as _ from "lodash";
-import * as blessed from "blessed";
+import blessed from "blessed";
 import OverviewEntry from "./cli/OverviewEntry";
 import { spawn } from "@kapeta/nodejs-process";
 import Symbols from "./cli/symbols";
@@ -24,9 +24,9 @@ class CLIHandler implements ProgressListener {
   private nestingLevel: number;
   private _entries: number;
   private _sections: number;
-  private _screen?: blessed.Widgets.Screen;
-  private _overview?: blessed.Widgets.BoxElement;
-  private _details?: blessed.Widgets.Log;
+  private _screen?: blessed.widget.Screen;
+  private _overview?: blessed.widget.Box;
+  private _details?: blessed.widget.Log;
 
   static get(interactive: boolean): CLIHandler {
     if (!singleton) {
@@ -167,7 +167,6 @@ class CLIHandler implements ProgressListener {
 
     const snapshot = this._screen.screenshot();
     this._screen.destroy();
-    // @ts-ignore Looks like blessed typings are not up to date
     process.stdout.write(snapshot);
   }
 

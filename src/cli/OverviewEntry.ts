@@ -2,22 +2,22 @@
  * Copyright 2023 Kapeta Inc.
  * SPDX-License-Identifier: MIT
  */
-import { Widgets } from "blessed";
+import * as blessed from "blessed";
 import Symbols from "./symbols";
 
-class OverviewEntry extends Widgets.BoxElement {
+class OverviewEntry extends blessed.widget.Box {
   private _timer: NodeJS.Timeout | null;
-  private _text: Widgets.TextElement;
-  private _icon: Widgets.TextElement;
+  private _text: any;
+  private _icon: any;
 
-  constructor(options: Widgets.BoxOptions) {
+  constructor(options: blessed.widget.BoxOptions) {
     super(options);
 
     this._timer = null;
 
     this.type = "overview-entry";
 
-    this._text = new Widgets.TextElement({
+    this._text = new blessed.widget.Text({
       parent: this,
       top: 0,
       left: 0,
@@ -27,7 +27,7 @@ class OverviewEntry extends Widgets.BoxElement {
       content: "",
     });
 
-    this._icon = new Widgets.TextElement({
+    this._icon = new blessed.widget.Text({
       parent: this,
       top: 0,
       width: 1,
