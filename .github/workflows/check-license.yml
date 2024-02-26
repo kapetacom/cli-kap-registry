@@ -12,7 +12,6 @@ jobs:
       - name: Check License Headers
         uses: kapetacom/check-license-action@master
         with:
-          holder: 'Kapeta Inc.'
-          license: 'MIT'
-          sources: 'src/**/* *.js'
-
+          holder: "Kapeta Inc."
+          license: "MIT"
+          sources: "src/**/* *.js"
