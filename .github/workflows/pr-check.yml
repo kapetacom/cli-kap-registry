@@ -4,7 +4,6 @@ on: [pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -13,6 +12,6 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org/
-          scope: '@kapeta'
+          scope: "@kapeta"
 
       - run: npm install --ignore-scripts
