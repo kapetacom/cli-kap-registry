@@ -11,6 +11,6 @@ jobs:
       - name: Build and publish executables
         uses: kapetacom/cli-build-action@v1
         with:
-          target: dist/*
+          target: dist/binary/*
           token: ${{ secrets.GITHUB_TOKEN }}
-          action: build-binary
+          action: build:binary
