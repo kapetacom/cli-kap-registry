@@ -297,6 +297,9 @@ class CLIHandler implements ProgressListener {
 
 	error(message: string): void {
 		this._log('ERROR', Array.from(arguments));
+		if (!this.interactive) {
+			process.exit(1);
+		}
 	}
 
 	section(title: string): void {
