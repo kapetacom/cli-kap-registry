@@ -73,7 +73,7 @@
 		"@kapeta/kap-command": "^1",
 		"@kapeta/local-cluster-config": "^0.4.0",
 		"@kapeta/nodejs-api-client": "^0.2.0",
-		"@kapeta/nodejs-registry-utils": "^0.11.2",
+		"@kapeta/nodejs-registry-utils": "^0.11.5",
 		"@kapeta/nodejs-utils": "^0.1.3",
 		"@kapeta/schemas": "^3.5.0",
 		"blessed": "^0.1.81",
