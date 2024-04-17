@@ -56,13 +56,9 @@ class CLIHandler implements ProgressListener {
 					stdio: 'inherit',
 				});
 
-				child.stdout?.on('data', (data: any) => {
-					this.debug(data);
-				});
-
 				const chunks: any[] = [];
-				child.stderr?.on('data', (data: any) => {
-					chunks.push({ type: 'error', line: data });
+				child.stdout?.on('data', (data: any) => {
+					chunks.push(data);
 				});
 
 				child.on('close', (exit: number, signal: any) => {
