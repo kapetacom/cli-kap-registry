@@ -53,11 +53,11 @@ class CLIHandler implements ProgressListener {
 				const child = spawn(command, [], {
 					cwd: directory ? directory : process.cwd(),
 					shell: true,
-					stdio: 'inherit',
+					stdio: ['ignore', 'pipe', 'inherit'],
 				});
 
 				const chunks: any[] = [];
-				child.stdout?.on('data', (data: any) => {
+				child.stdout.on('data', (data: any) => {
 					chunks.push(data);
 				});
 
