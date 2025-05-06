@@ -89,7 +89,7 @@
 		"request-promise-native": "^1.0.8",
 		"simple-git": "^3.0.0",
 		"tar": "^6.1.13",
-		"tar-fs": "^2.0.1",
+		"tar-fs": "^3.0.0",
 		"xml-js": "^1.6.11",
 		"yaml": "^1.9.2",
 		"zlib": "^1.0.5"
